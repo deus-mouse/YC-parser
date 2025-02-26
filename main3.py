@@ -57,6 +57,8 @@ for service in services:
     try:
         # Ищем элемент, содержащий время услуги (текст с "мин")
         duration_element = service.find_element(By.XPATH, ".//*[contains(text(),'мин')]")
+        print(f'{duration_element=}')
+
         duration_text = duration_element.text  # пример: "30 мин"
         # Извлекаем число из текста
         match = re.search(r'(\d+)', duration_text)
