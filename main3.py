@@ -11,19 +11,12 @@ driver = webdriver.Chrome()
 # МОД: Открытие сайта
 driver.get("https://n82183.yclients.com/")
 
-# МОД: Ожидание появления элементов кнопок выбора города по альтернативному селектору
+# МОД: Ожидание появления кнопки с текстом "Москва"
 wait = WebDriverWait(driver, 10)
-cities = wait.until(EC.presence_of_all_elements_located(
-    (By.XPATH, "//a[contains(@href, 'select-city')]")  # МОД: Изменён селектор для выбора города
-))
+moscow_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Москва')]")))  # МОД: Поиск элемента с текстом "Москва"
 
-if cities:
-    first_city = cities[0]
-    print("Выбираем город:", first_city.text)
-    # МОД: Клик по первому городу
-    first_city.click()
-else:
-    print("Города не найдены!")
+print("Нажимаем на кнопку с текстом 'Москва':", moscow_btn.text)
+moscow_btn.click()  # МОД: Клик по кнопке "Москва"
 
 # МОД: Пауза для наблюдения результатов (при необходимости)
 time.sleep(5)
