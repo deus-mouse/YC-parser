@@ -18,6 +18,15 @@ moscow_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text
 print("Нажимаем на кнопку с текстом 'Москва':", moscow_btn.text)
 moscow_btn.click()  # МОД: Клик по кнопке "Москва"
 
+# button = driver.find_element(By.CLASS_NAME, "address")
+# print("Нажимаем на кнопку address:", button.text)
+# button.click()  # МОД: Клик по кнопке "Москва"
+
+buttons = driver.find_elements(By.CLASS_NAME, "address")
+print("Видим филиалов:", len(buttons))
+
+buttons[0].click()  # Выбираем первую кнопку
+
 # МОД: Пауза для наблюдения результатов (при необходимости)
-time.sleep(5)
+time.sleep(2)
 driver.quit()
