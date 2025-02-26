@@ -60,6 +60,8 @@ for service in services:
         print(f'{duration_element=}')
 
         duration_text = duration_element.text  # пример: "30 мин"
+        print(f'{duration_text=}')
+
         # Извлекаем число из текста
         match = re.search(r'(\d+)', duration_text)
         if match:
