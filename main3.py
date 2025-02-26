@@ -50,31 +50,31 @@ print("Видим услуг:", len(services))
 # Здесь предполагается, что каждая услуга оформлена в элементе с классом "select-services__item"  # изменено
 # services = driver.find_elements(By.CLASS_NAME, "select-services__item")  # изменено
 #
-# min_time = float('inf')
-# min_service = None
-#
-# for service in services:
-#     try:
-#         # Ищем элемент, содержащий время услуги (текст с "мин")
-#         duration_element = service.find_element(By.XPATH, ".//*[contains(text(),'мин')]")
-#         duration_text = duration_element.text  # пример: "30 мин"
-#         # Извлекаем число из текста
-#         match = re.search(r'(\d+)', duration_text)
-#         if match:
-#             minutes = int(match.group(1))
-#             if minutes < min_time:
-#                 min_time = minutes
-#                 min_service = service
-#     except Exception as e:
-#         continue
-#
-# if min_service:
-#     # Пример получения названия услуги (предположим, оно в элементе с классом "service-title")  # изменено
-#     service_name = min_service.find_element(By.CLASS_NAME, "service-title").text  # изменено
-#     print(f"Услуга с минимальным временем: {service_name} ({min_time} мин)")
-#     # При необходимости: min_service.click()
-# else:
-#     print("Услуги не найдены или время не определено.")
+min_time = float('inf')
+min_service = None
+
+for service in services:
+    try:
+        # Ищем элемент, содержащий время услуги (текст с "мин")
+        duration_element = service.find_element(By.XPATH, ".//*[contains(text(),'мин')]")
+        duration_text = duration_element.text  # пример: "30 мин"
+        # Извлекаем число из текста
+        match = re.search(r'(\d+)', duration_text)
+        if match:
+            minutes = int(match.group(1))
+            if minutes < min_time:
+                min_time = minutes
+                min_service = service
+    except Exception as e:
+        continue
+
+if min_service:
+    # Пример получения названия услуги (предположим, оно в элементе с классом "service-title")  # изменено
+    service_name = min_service.find_element(By.CLASS_NAME, "service-title").text  # изменено
+    print(f"Услуга с минимальным временем: {service_name} ({min_time} мин)")
+    # При необходимости: min_service.click()
+else:
+    print("Услуги не найдены или время не определено.")
 
 # min_time = float('inf')  # добавлено
 # min_service = None      # добавлено
