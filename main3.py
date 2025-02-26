@@ -36,9 +36,13 @@ choose_specialist_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[co
 choose_specialist_btn.click()  # МОД: Клик по кнопке "Выбрать специалиста"
 
 wait = WebDriverWait(driver, 10)
-staff_block_master_clickable_btn = driver.find_elements(By.CLASS_NAME, "staff-block master-clickable")
+staff_block_master_clickable_btn = driver.find_elements(By.CLASS_NAME, "staff-block")
 print("Видим мастеров:", len(staff_block_master_clickable_btn))
-# staff_block_master_clickable_btn[0].click()
+
+staff_block_master_clickable_btn[1].click()  # выбрали первого мастера
+
+
+
 
 # МОД: Пауза для наблюдения результатов (при необходимости)
 time.sleep(2)
