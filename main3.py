@@ -35,13 +35,39 @@ individual_btn.click()  # МОД: Клик по кнопке "Индивидуа
 choose_specialist_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать специалиста')]")))  # МОД: Поиск элемента с текстом "Москва"
 choose_specialist_btn.click()  # МОД: Клик по кнопке "Выбрать специалиста"
 
-wait = WebDriverWait(driver, 10)
 staff_block_master_clickable_btn = driver.find_elements(By.CLASS_NAME, "staff-block")
 print("Видим мастеров:", len(staff_block_master_clickable_btn))
 
 staff_block_master_clickable_btn[1].click()  # выбрали первого мастера
 
+choose_service_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать услугу')]")))  # МОД: Поиск элемента с текстом "Москва"
+choose_service_btn.click()  # МОД: Клик по кнопке "Выбрать услугу"
 
+services = driver.find_elements(By.CLASS_NAME, "service-item")  # добавлено
+
+min_time = float('inf')  # добавлено
+min_service = None      # добавлено
+
+for service in services:  # добавлено
+    # Предполагаем, что время услуги хранится в элементе с классом "service-time" (например, "30 мин")  # добавлено
+    time_text = service.find_element(By.CLASS_NAME, "service-time").text  # добавлено
+    try:  # добавлено
+        minutes = int(time_text.split()[0])  # добавлено
+    except ValueError:  # добавлено
+        continue  # добавлено
+
+    if minutes < min_time:  # добавлено
+        min_time = minutes  # добавлено
+        min_service = service  # добавлено
+
+if min_service:  # добавлено
+    # Предполагаем, что название услуги находится в элементе с классом "service-title"  # добавлено
+    service_name = min_service.find_element(By.CLASS_NAME, "service-title").text  # добавлено
+    print(f"Услуга с минимальным временем: {service_name} ({min_time} мин)")  # добавлено
+    # При необходимости можно активировать услугу:  # добавлено
+    # min_service.click()  # добавлено
+else:  # добавлено
+    print("Услуги не найдены или время не удалось определить.")  # добавлено
 
 
 # МОД: Пауза для наблюдения результатов (при необходимости)
