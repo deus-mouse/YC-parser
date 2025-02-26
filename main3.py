@@ -14,6 +14,8 @@ driver.get("https://n82183.yclients.com/")
 # МОД: Ожидание появления кнопки с текстом "Москва"
 wait = WebDriverWait(driver, 10)
 moscow_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Москва')]")))  # МОД: Поиск элемента с текстом "Москва"
+# TODO у некоторых мб сразу быть выбор адреса без выбора города,
+#  поэтому стоит искать if not address_buttons = driver.find_elements(By.CLASS_NAME, "address")
 
 print("Нажимаем на кнопку с текстом 'Москва':", moscow_btn.text)
 moscow_btn.click()  # МОД: Клик по кнопке "Москва"
@@ -22,10 +24,20 @@ moscow_btn.click()  # МОД: Клик по кнопке "Москва"
 # print("Нажимаем на кнопку address:", button.text)
 # button.click()  # МОД: Клик по кнопке "Москва"
 
-buttons = driver.find_elements(By.CLASS_NAME, "address")
-print("Видим филиалов:", len(buttons))
+address_buttons = driver.find_elements(By.CLASS_NAME, "address")
+print("Видим филиалов:", len(address_buttons))
 
-buttons[0].click()  # Выбираем первую кнопку
+address_buttons[0].click()  # Выбираем первый адресс
+
+individual_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Индивидуальные услуги')]")))  # МОД: Поиск элемента с текстом "Москва"
+individual_btn.click()  # МОД: Клик по кнопке "Индивидуальные услуги"
+
+choose_specialist_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать специалиста')]")))  # МОД: Поиск элемента с текстом "Москва"
+choose_specialist_btn.click()  # МОД: Клик по кнопке "Выбрать специалиста"
+
+staff_block_master_clickable_btn = driver.find_elements(By.CLASS_NAME, "staff_block_master_clickable_btn")
+print("Видим мастеров:", len(staff_block_master_clickable_btn))
+staff_block_master_clickable_btn[0].click()
 
 # МОД: Пауза для наблюдения результатов (при необходимости)
 time.sleep(2)
