@@ -35,9 +35,10 @@ individual_btn.click()  # МОД: Клик по кнопке "Индивидуа
 choose_specialist_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать специалиста')]")))  # МОД: Поиск элемента с текстом "Москва"
 choose_specialist_btn.click()  # МОД: Клик по кнопке "Выбрать специалиста"
 
-staff_block_master_clickable_btn = driver.find_elements(By.CLASS_NAME, "staff_block_master_clickable_btn")
+wait = WebDriverWait(driver, 10)
+staff_block_master_clickable_btn = driver.find_elements(By.CLASS_NAME, "staff-block master-clickable")
 print("Видим мастеров:", len(staff_block_master_clickable_btn))
-staff_block_master_clickable_btn[0].click()
+# staff_block_master_clickable_btn[0].click()
 
 # МОД: Пауза для наблюдения результатов (при необходимости)
 time.sleep(2)
