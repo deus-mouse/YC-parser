@@ -120,3 +120,4 @@ for service in services:
 # МОД: Пауза для наблюдения результатов (при необходимости)
 time.sleep(5)
 driver.quit()
+
