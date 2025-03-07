@@ -52,21 +52,21 @@ staff_block_master_clickable_btn[1].click()  # выбрали мастера
 choose_service_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать услугу')]")))  # МОД: Поиск элемента с текстом "Москва"
 choose_service_btn.click()  # МОД: Клик по кнопке "Выбрать услугу"
 
-# services = driver.find_elements(By.CLASS_NAME, "card-content-container")  # добавлено
-# print("Видим услуг:", len(services))
+services = driver.find_elements(By.CLASS_NAME, "card-content-container")  # добавлено
+print("Видим услуг:", len(services))
 # Находим все элементы услуг на странице
 # Здесь предполагается, что каждая услуга оформлена в элементе с классом "select-services__item"  # изменено
 # services = driver.find_elements(By.CLASS_NAME, "select-services__item")  # изменено
 
 
-# min_time = float('inf')
-# min_service = None
-#
-# for service in services:
-#     try:
-#         # Ищем элемент, содержащий время услуги (текст с "мин")
-#         duration_element = service.find_element(By.XPATH, ".//*[contains(text(),'мин')]")
-#         print(f'{duration_element=}')
+min_time = float('inf')
+min_service = None
+
+for service in services:
+    try:
+        # Ищем элемент, содержащий время услуги (текст с "мин")
+        duration_element = service.find_element(By.XPATH, ".//*[contains(text(),'мин')]")
+        print(f'{duration_element=}')
 #
 #         duration_text = duration_element.text  # пример: "30 мин"
 #         print(f'{duration_text=}')
@@ -78,8 +78,9 @@ choose_service_btn.click()  # МОД: Клик по кнопке "Выбрать
 #             if minutes < min_time:
 #                 min_time = minutes
 #                 min_service = service
-#     except Exception as e:
-#         continue
+    except Exception as ex:
+        print(f'{ex=}')
+        continue
 #
 # if min_service:
 #     # Пример получения названия услуги (предположим, оно в элементе с классом "service-title")  # изменено
