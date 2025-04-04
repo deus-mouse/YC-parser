@@ -1,10 +1,10 @@
-# МОД: Импорт необходимых модулей
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time  # МОД: Для паузы
+import time
 import re
+from selenium.common.exceptions import ElementClickInterceptedException
 
 # МОД: Инициализация драйвера (убедитесь, что chromedriver доступен в PATH)
 driver = webdriver.Chrome()
@@ -18,19 +18,14 @@ moscow_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text
 # TODO у некоторых мб сразу быть выбор адреса без выбора города,
 #  поэтому стоит искать if not address_buttons = driver.find_elements(By.CLASS_NAME, "address")
 
-print("Нажимаем на кнопку с текстом 'Москва':", moscow_btn.text)
 moscow_btn.click()  # МОД: Клик по кнопке "Москва"
-
-# button = driver.find_element(By.CLASS_NAME, "address")
-# print("Нажимаем на кнопку address:", button.text)
-# button.click()  # МОД: Клик по кнопке "Москва"
-
 time.sleep(1)
+
 address_buttons = driver.find_elements(By.CLASS_NAME, "address")
 print("Видим филиалов:", len(address_buttons))
-address_buttons[0].click()  # Выбираем первый адресс
-
+address_buttons[0].click()  # Выбираем первый адрес
 time.sleep(1)
+
 individual_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Индивидуальные услуги')]")))  # МОД: Поиск элемента с текстом "Москва"
 individual_btn.click()  # МОД: Клик по кнопке "Индивидуальные услуги"
 
@@ -42,31 +37,38 @@ time.sleep(1)
 staff_block_master_clickable_btn = driver.find_elements(By.CLASS_NAME, "name")
 print("Видим мастеров:", len(staff_block_master_clickable_btn))
 
-# for i in range(1, len(staff_block_master_clickable_btn)):
-#     time.sleep(1)
-#     print(i)
-#     staff_block_master_clickable_btn[i].click()  # выбрали мастера
-
-staff_block_master_clickable_btn[1].click()  # выбрали мастера
-
-choose_service_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать услугу')]")))  # МОД: Поиск элемента с текстом "Москва"
-choose_service_btn.click()  # МОД: Клик по кнопке "Выбрать услугу"
-
-services = driver.find_elements(By.CLASS_NAME, "card-content-container")  # добавлено
-print("Видим услуг:", len(services))
+for i in range(1, len(staff_block_master_clickable_btn)):
+    time.sleep(0.5)
+    print(i)
+    try:
+        # Ждем, пока элемент станет кликабельным (изменено)
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, ".//div[@data-locator='master_name']")))
+        # Прокручиваем элемент в видимую область (изменено)
+        driver.execute_script("arguments[0].scrollIntoView(true);", staff_block_master_clickable_btn[i])
+        staff_block_master_clickable_btn[i].click()  # выбрали мастера
+    except ElementClickInterceptedException:
+        # Альтернативный клик через JavaScript (изменено)
+        driver.execute_script("arguments[0].click();", staff_block_master_clickable_btn[i])
+# staff_block_master_clickable_btn[1].click()  # выбрали мастера
+#
+# choose_service_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать услугу')]")))  # МОД: Поиск элемента с текстом "Москва"
+# choose_service_btn.click()  # МОД: Клик по кнопке "Выбрать услугу"
+#
+# services = driver.find_elements(By.CLASS_NAME, "card-content-container")  # добавлено
+# print("Видим услуг:", len(services))
 # Находим все элементы услуг на странице
 # Здесь предполагается, что каждая услуга оформлена в элементе с классом "select-services__item"  # изменено
 # services = driver.find_elements(By.CLASS_NAME, "select-services__item")  # изменено
 
 
-min_time = float('inf')
-min_service = None
-
-for service in services:
-    try:
-        # Ищем элемент, содержащий время услуги (текст с "мин")
-        duration_element = service.find_element(By.XPATH, ".//*[contains(text(),'мин')]")
-        print(f'{duration_element=}')
+# min_time = float('inf')
+# min_service = None
+#
+# for service in services:
+#     try:
+#         # Ищем элемент, содержащий время услуги (текст с "мин")
+#         duration_element = service.find_element(By.XPATH, ".//*[contains(text(),'мин')]")
+#         print(f'{duration_element=}')
 #
 #         duration_text = duration_element.text  # пример: "30 мин"
 #         print(f'{duration_text=}')
@@ -78,10 +80,10 @@ for service in services:
 #             if minutes < min_time:
 #                 min_time = minutes
 #                 min_service = service
-    except Exception as ex:
-        print(f'{ex=}')
-        continue
-#
+#     except Exception as ex:
+#         print(f'{ex=}')
+#         continue
+# #
 # if min_service:
 #     # Пример получения названия услуги (предположим, оно в элементе с классом "service-title")  # изменено
 #     service_name = min_service.find_element(By.CLASS_NAME, "service-title").text  # изменено
