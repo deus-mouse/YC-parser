@@ -26,31 +26,33 @@ print("Видим филиалов:", len(address_buttons))
 address_buttons[0].click()  # Выбираем первый адрес
 time.sleep(1)
 
-individual_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Индивидуальные услуги')]")))  # МОД: Поиск элемента с текстом "Москва"
+individual_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Индивидуальные услуги')]")))
 individual_btn.click()  # МОД: Клик по кнопке "Индивидуальные услуги"
-
 time.sleep(1)
-choose_specialist_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать специалиста')]")))  # МОД: Поиск элемента с текстом "Москва"
+
+choose_specialist_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать специалиста')]")))
 choose_specialist_btn.click()  # МОД: Клик по кнопке "Выбрать специалиста"
-
 time.sleep(1)
+
 staff_block_master_clickable_btn = driver.find_elements(By.CLASS_NAME, "name")
 print("Видим мастеров:", len(staff_block_master_clickable_btn))
 
-for i in range(1, len(staff_block_master_clickable_btn)):
-    time.sleep(0.5)
-    print(i)
-    try:
-        # Ждем, пока элемент станет кликабельным (изменено)
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, ".//div[@data-locator='master_name']")))
-        # Прокручиваем элемент в видимую область (изменено)
-        driver.execute_script("arguments[0].scrollIntoView(true);", staff_block_master_clickable_btn[i])
-        staff_block_master_clickable_btn[i].click()  # выбрали мастера
-    except ElementClickInterceptedException:
-        # Альтернативный клик через JavaScript (изменено)
-        driver.execute_script("arguments[0].click();", staff_block_master_clickable_btn[i])
-# staff_block_master_clickable_btn[1].click()  # выбрали мастера
-#
+# Цикл перебирает мастеров
+# for i in range(1, len(staff_block_master_clickable_btn)):
+#     time.sleep(0.5)
+#     print(i)
+#     try:
+#         # Ждем, пока элемент станет кликабельным (изменено)
+#         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, ".//div[@data-locator='master_name']")))
+#         # Прокручиваем элемент в видимую область (изменено)
+#         driver.execute_script("arguments[0].scrollIntoView(true);", staff_block_master_clickable_btn[i])
+#         staff_block_master_clickable_btn[i].click()  # выбрали мастера
+#     except ElementClickInterceptedException:
+#         # Альтернативный клик через JavaScript (изменено)
+#         driver.execute_script("arguments[0].click();", staff_block_master_clickable_btn[i])
+
+staff_block_master_clickable_btn[1].click()  # выбрали 1-го мастера
+
 # choose_service_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать услугу')]")))  # МОД: Поиск элемента с текстом "Москва"
 # choose_service_btn.click()  # МОД: Клик по кнопке "Выбрать услугу"
 #
