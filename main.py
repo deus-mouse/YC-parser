@@ -1,26 +1,45 @@
 from parser import YCParser
+import time
 
 URL = "https://n82183.yclients.com/"
 CITY = 'Москва'
 
 
 def main():
-    parser = YCParser(url=URL, city=CITY, st=3)
+    parser = YCParser(url=URL, city=CITY,
+                      st=2
+                      )
     parser.open_site()
-    # parser.open_site("https://n82183.yclients.com/company/1041424/personal/select-master?o=")
     parser.choose_city()
-    branch_buttons = parser.find_branchs()
-    for branch in branch_buttons:
-        parser.choose_branch(branch)
-        # parser.choose_individual_services()
-        # parser.choose_specialist()
-        # parser.choose_master()
-        # parser.choose_service()
-        # parser.select_min_service()
-        # parser.choose_date_and_time()
-        # parser.click_working_days()
-        # parser.count_timeslots()
-        # parser.quit()
+    br_count = len(parser.find_branches())
+    print("Видим филиалов:", br_count)
+
+    for br in range(br_count):
+        branch_buttons = parser.find_branches()
+        branch = branch_buttons[br]
+        parser.choose_branch(branch)  # откатываемся к этой странице филиалов
+        parser.choose_individual_services()
+        parser.choose_specialist()
+
+        m_count = len(parser.find_masters())
+        print("Видим мастеров:", m_count)
+        for m in range(1, m_count):
+            master_buttons = parser.find_masters()
+            master = master_buttons[m]
+
+            parser.choose_master(master)  # откатываемся к этой странице мастеров
+            parser.choose_service()
+            # parser.select_min_service()
+            # parser.choose_date_and_time()
+            # parser.click_working_days()
+            # parser.count_timeslots()
+            break
+        # parser.go_back(parser.depth['branch'])
+        break
+
+    parser.quit()
+    print(f'{parser.branches = }')
+    print(f'{parser.masters = }')
 
 
 if __name__ == "__main__":
