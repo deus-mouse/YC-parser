@@ -28,7 +28,7 @@ def main():
             master = master_buttons[m]
             parser.choose_master(master)  # откатываемся к этой странице мастеров
             parser.choose_service()
-            # parser.select_min_service()
+            parser.select_min_service()
             # parser.choose_date_and_time()
             # parser.click_working_days()
             # parser.count_timeslots()
