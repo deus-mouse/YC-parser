@@ -23,10 +23,9 @@ def main():
 
         m_count = len(parser.find_masters())
         print("Видим мастеров:", m_count)
-        for m in range(1, m_count):
+        for m in range(1, m_count):  # 0 = Любой сотрудник
             master_buttons = parser.find_masters()
             master = master_buttons[m]
-
             parser.choose_master(master)  # откатываемся к этой странице мастеров
             parser.choose_service()
             # parser.select_min_service()
