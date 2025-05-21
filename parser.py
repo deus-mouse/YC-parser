@@ -15,7 +15,10 @@ class YCParser:
         self.url = url
         self.city = city
         self.st = st
-        self.branchs = {}
+        self.branches = {}
+        self.masters = {}
+        self.depth = {'branch': 1,
+                      'master': 0}
 
     def convert_to_minutes(self, time_text):
         # Замена неразрывных пробелов, обрезка лишних пробелов
@@ -31,9 +34,12 @@ class YCParser:
                 return total
         return float('inf')
 
-    def open_site(self):
-        self.driver.get(self.url)
-        time.sleep(self.st)
+    def open_site(self, url=None):
+        if url:
+            self.driver.get(url)
+        else:
+            self.driver.get(self.url)
+        self.pause()
 
     def choose_city(self):
         city_items = self.wait.until(
@@ -43,48 +49,55 @@ class YCParser:
                 title_el = item.find_element(By.CSS_SELECTOR, '[data-locator="city_title"]')  
                 if title_el.text.strip() == self.city:  
                     item.click()  
-                    time.sleep(self.st)  
+                    self.pause()  
                     return  
             except Exception:  
                 continue  
         print(f"Город {self.city} не найден.")  
-        time.sleep(self.st)  
+        self.pause()  
 
-    def find_branchs(self):
-        branch_buttons = self.driver.find_elements(By.CLASS_NAME, "address")
-        print("Видим филиалов:", len(branch_buttons))
+    def find_branches(self):
+        # branch_buttons = self.driver.find_elements(By.CLASS_NAME, "address")
+        branch_buttons = self.driver.find_elements(By.CLASS_NAME, "title")
+        self.pause()
+
         if branch_buttons:
             return branch_buttons
-        return None
+        return []
 
     def choose_branch(self, branch):
-        print(branch.text.strip())  # todo тут нужно имя филиала, а не адрес
-        self.branchs[branch] = 0
-        print(f'{self.branchs = }')
-        # branch.click()
-        time.sleep(self.st)
+        branch_name = branch.text.strip()
+        self.branches[branch_name] = 0
+        branch.click()
+        self.pause()
 
     def choose_individual_services(self):
         individual_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Индивидуальные услуги')]")))
         individual_btn.click()  # клик по "Индивидуальные услуги"
-        time.sleep(self.st)
+        self.pause()
 
     def choose_specialist(self):
         specialist_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать специалиста')]")))
         specialist_btn.click()  # клик по "Выбрать специалиста"
-        time.sleep(self.st)
+        self.pause()
 
-    def choose_master(self):
-        masters = self.driver.find_elements(By.CLASS_NAME, "name")
-        print("Видим мастеров:", len(masters))
-        if len(masters) > 1:
-            masters[1].click()  # выбираем первого мастера (индекс 1)
-            time.sleep(self.st)
+    def find_masters(self):
+        master_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
+        self.pause()
+        if master_buttons:
+            return master_buttons
+        return []
+
+    def choose_master(self, master):
+        master_name = master.text.strip()
+        self.masters[master_name] = 0
+        master.click()
+        self.pause()
 
     def choose_service(self):
         service_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать услугу')]")))
         service_btn.click()  # клик по "Выбрать услугу"
-        time.sleep(self.st)
+        self.pause()
 
     def select_min_service(self):
         elements = self.driver.find_elements(By.CSS_SELECTOR, 'span[data-locator="service_seance_length"]')
@@ -103,12 +116,12 @@ class YCParser:
             min_element.click()  # выбираем услугу с минимальной длительностью
         else:
             print("Элементы не найдены.")
-        time.sleep(self.st)
+        self.pause()
 
     def choose_date_and_time(self):
         choose_date_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать дату и время')]")))
         choose_date_btn.click()  # клик по "Выбрать дату и время"
-        time.sleep(self.st)
+        self.pause()
         current_date = datetime.now().date().day
         print(f'{current_date = }')
 
@@ -120,7 +133,7 @@ class YCParser:
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
                 self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
                 day.click()  # клик по рабочему дню
-                time.sleep(self.st)
+                self.pause()
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
 
@@ -131,5 +144,13 @@ class YCParser:
         return count
 
     def quit(self):
-        time.sleep(5)
+        time.sleep(3)
         self.driver.quit()
+        
+    def pause(self):
+        time.sleep(self.st)
+
+    def go_back(self, n):
+        for _ in range(n):
+            self.driver.back()
+            self.pause()
