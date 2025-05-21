@@ -105,9 +105,9 @@ class YCParser:
         min_time = float('inf')
         min_element = None
         for el in elements:
-            print("Текст:", el.text)
+            # print("Текст:", el.text)
             total_minutes = self.convert_to_minutes(el.text)
-            print(f"{total_minutes = }")
+            # print(f"{total_minutes = }")
             if total_minutes < min_time:
                 min_time = total_minutes
                 min_element = el
