@@ -7,7 +7,7 @@ CITY = 'Москва'
 
 def main():
     parser = YCParser(url=URL, city=CITY,
-                      st=2
+                      # st=1
                       )
     parser.open_site()
     parser.choose_city()
