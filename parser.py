@@ -126,16 +126,16 @@ class YCParser:
         print(f'{current_date = }')
 
     def click_working_days(self, today: datetime, depth: int):
-        
+        _depth = today + timedelta(days=depth)
+        last_day_on_first_page = None
+
         working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
         print("Найдено рабочих дней:", len(working_days))
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
 
-        last_day_on_first_page = None
-        depth_date = today + timedelta(days=depth)
         first_date_str = working_days[0].get_attribute("data-locator-date")
         current_date = datetime.strptime(first_date_str, '%Y-%m-%d')
-        while depth_date > current_date:
+        while _depth > current_date:
         for day in working_days:
             try:
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
@@ -144,7 +144,7 @@ class YCParser:
                 self.pause()
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
-        last_day_on_first_page
+
         print(last_day_on_first_page)
 
     def count_timeslots(self):
