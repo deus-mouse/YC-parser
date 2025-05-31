@@ -122,30 +122,43 @@ class YCParser:
         choose_date_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать дату и время')]")))
         choose_date_btn.click()  # клик по "Выбрать дату и время"
         self.pause()
-        current_date = datetime.now().date().day
-        print(f'{current_date = }')
 
-    def click_working_days(self, today: datetime, depth: int):
-        _depth = today + timedelta(days=depth)
+    def click_working_days(self, today, depth: int):
+        depth_date = today + timedelta(days=depth)
         last_day_on_first_page = None
 
-        working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
-        print("Найдено рабочих дней:", len(working_days))
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
+        current_date = today
+        while current_date < depth_date:  # пока дата не превысила текущую
+            working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
+            print("Найдено рабочих дней:", len(working_days))
+            _date = self.check_working_days(working_days)
+            current_date = _date
+            print(f'{current_date = }')
+            print(f'{current_date < depth_date = }')
+            print(f'{depth_date - current_date = }')
 
-        first_date_str = working_days[0].get_attribute("data-locator-date")
-        current_date = datetime.strptime(first_date_str, '%Y-%m-%d')
-        while _depth > current_date:
+    def check_working_days(self, working_days) -> datetime:
         for day in working_days:
+            print(f'{day = }')
             try:
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
                 self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
                 day.click()  # клик по рабочему дню
+                # some logic
                 self.pause()
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
 
-        print(last_day_on_first_page)
+        last_working_day_str = working_days[-1].get_attribute("data-locator-date")
+        last_working_day = datetime.strptime(last_working_day_str, '%Y-%m-%d')
+
+        arrow_right = self.wait.until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
+        )
+        arrow_right.click()
+
+        return last_working_day
 
     def count_timeslots(self):
         time_slots = self.driver.find_elements(By.CSS_SELECTOR, 'ui-kit-chips[data-locator="timeslot"]')
