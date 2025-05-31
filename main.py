@@ -4,13 +4,13 @@ from datetime import datetime
 
 URL = "https://n82183.yclients.com/"
 CITY = 'Москва'
-today = datetime.now()
 depth_days = 30
+today = datetime.now()
 
 
 def main():
     parser = YCParser(url=URL, city=CITY,
-                      # st=1
+                      st=3
                       )
     parser.open_site()
     parser.choose_city()
@@ -39,7 +39,7 @@ def main():
             # parser.go_back(parser.depth['date_and_time'])
             # parser.go_back(parser.depth['service_page'])
 
-            parser.click_working_days(today, depth_days)
+            parser.click_working_days(depth_days)
             parser.count_timeslots()
             break
         # parser.go_back(parser.depth['branch'])
