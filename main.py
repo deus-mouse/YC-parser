@@ -1,8 +1,11 @@
 from parser import YCParser
 import time
+from datetime import datetime
 
 URL = "https://n82183.yclients.com/"
 CITY = 'Москва'
+today = datetime.now()
+depth_days = 30
 
 
 def main():
@@ -27,11 +30,17 @@ def main():
             master_buttons = parser.find_masters()
             master = master_buttons[m]
             parser.choose_master(master)  # откатываемся к этой странице мастеров
-            parser.choose_service()
+            parser.choose_service_page()
             parser.select_min_service()
-            # parser.choose_date_and_time()
-            # parser.click_working_days()
-            # parser.count_timeslots()
+            parser.choose_date_and_time()
+
+            # parser.go_back(parser.depth['master'])
+            # parser.go_back(parser.depth['service'])
+            # parser.go_back(parser.depth['date_and_time'])
+            # parser.go_back(parser.depth['service_page'])
+
+            parser.click_working_days(today, depth_days)
+            parser.count_timeslots()
             break
         # parser.go_back(parser.depth['branch'])
         break
