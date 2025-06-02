@@ -156,7 +156,6 @@ class YCParser:
 
     def click_working_days(self, working_days, master_name, min_time, branch_name) -> datetime:
         for day in working_days:
-            print(f'{day = }')
             try:
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
                 self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
