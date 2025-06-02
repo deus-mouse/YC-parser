@@ -175,7 +175,7 @@ class YCParser:
     def count_timeslots(self, master_name, min_time):
         time_slots = self.driver.find_elements(By.CSS_SELECTOR, 'ui-kit-chips[data-locator="timeslot"]')
         count = len(time_slots)
-        print("Найдено временных интервалов:", count)
+        # print("Найдено временных интервалов:", count)
         self.masters[master_name] += min_time * count
 
     def upsert_branches_dict(self, master_name, branch_name):
