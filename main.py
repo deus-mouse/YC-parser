@@ -31,8 +31,10 @@ def main():
         print("Видим мастеров:", m_count-1)
 
         for m in range(1, m_count):  # 0 = Любой сотрудник
+            print(f'--------> {m = }')
             master = master_buttons[m]
             master_name = master.text.strip()
+            print(f'{master_name = }')
 
             parser.choose_master(master)  # откатываемся к этой странице мастеров
             parser.choose_service_page()
