@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException
+from collections import defaultdict
 
 
 class YCParser:
@@ -15,8 +16,8 @@ class YCParser:
         self.url = url
         self.city = city
         self.st = st
-        self.branches = {}
-        self.masters = {}
+        self.branches = defaultdict(int)
+        self.masters = defaultdict(int)
         self.depth = {'branch': 1,
                       'master': 0}
 
@@ -117,54 +118,71 @@ class YCParser:
         else:
             print("Элементы не найдены.")
         self.pause()
+        return min_time if min_time != float('inf') else 0
 
     def choose_date_and_time(self):
         choose_date_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать дату и время')]")))
         choose_date_btn.click()  # клик по "Выбрать дату и время"
         self.pause()
 
-    def click_working_days(self, today, depth: int):
+    def check_working_days(self, today, depth: int, master_name: str, min_time: int, branch_name: str):
         depth_date = today + timedelta(days=depth)
         last_day_on_first_page = None
 
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
         current_date = today
         while current_date < depth_date:  # пока дата не превысила текущую
+            print('-> WHILE')
             working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
             print("Найдено рабочих дней:", len(working_days))
-            _date = self.check_working_days(working_days)
-            current_date = _date
+            if not working_days:
+                print('-> WHILE break')
+                break
+            _date = self.click_working_days(working_days, master_name, min_time, branch_name)
             print(f'{current_date = }')
+            print(f'{depth_date = }')
             print(f'{current_date < depth_date = }')
-            print(f'{depth_date - current_date = }')
 
-    def check_working_days(self, working_days) -> datetime:
+            arrow_right = self.wait.until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
+            )
+            arrow_right.click()
+
+            current_date = _date
+
+
+
+    def click_working_days(self, working_days, master_name, min_time, branch_name) -> datetime:
         for day in working_days:
             print(f'{day = }')
             try:
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
                 self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
                 day.click()  # клик по рабочему дню
-                # some logic
                 self.pause()
+                self.count_timeslots(master_name, min_time)
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
 
         last_working_day_str = working_days[-1].get_attribute("data-locator-date")
         last_working_day = datetime.strptime(last_working_day_str, '%Y-%m-%d')
 
-        arrow_right = self.wait.until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
-        )
-        arrow_right.click()
+
 
         return last_working_day
 
-    def count_timeslots(self):
+    def count_timeslots(self, master_name, min_time):
         time_slots = self.driver.find_elements(By.CSS_SELECTOR, 'ui-kit-chips[data-locator="timeslot"]')
         count = len(time_slots)
         print("Найдено временных интервалов:", count)
-        return count
+        self.masters[master_name] += min_time * count
+
+    def upsert_branches_dict(self, master_name, branch_name):
+        self.branches[branch_name] += self.masters[master_name]
+
+
+
+
 
     def quit(self):
         time.sleep(3)
