@@ -18,8 +18,10 @@ class YCParser:
         self.st = st
         self.branches = defaultdict(int)
         self.masters = defaultdict(int)
-        self.depth = {'branch': 1,
-                      'master': 0}
+        self.depths = {
+            'branch': 1,
+            'master': 2,
+        }
 
     def convert_to_minutes(self, time_text):
         # Замена неразрывных пробелов, обрезка лишних пробелов
