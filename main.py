@@ -38,16 +38,15 @@ def main():
             parser.choose_service_page()
             min_time = parser.select_min_service()
             parser.choose_date_and_time()
+            parser.check_working_days(today, depth_days, master_name, min_time, branch_name)
+            parser.upsert_branches_dict(master_name, branch_name)
 
-            # parser.go_back(parser.depth['master'])
+            parser.go_back(parser.depths['master'])
             # parser.go_back(parser.depth['service'])
             # parser.go_back(parser.depth['date_and_time'])
             # parser.go_back(parser.depth['service_page'])
 
-            parser.check_working_days(today, depth_days, master_name, min_time, branch_name)
-            parser.upsert_branches_dict(master_name, branch_name)
-
-            break  # todo remove
+            # break  # todo remove
         # parser.go_back(parser.depth['branch'])
         break
 
