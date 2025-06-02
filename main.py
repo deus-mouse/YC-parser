@@ -10,7 +10,7 @@ today = datetime.now()
 
 def main():
     parser = YCParser(url=URL, city=CITY,
-                      st=3
+                      # st=3
                       )
     parser.open_site()
     parser.choose_city()
@@ -20,18 +20,23 @@ def main():
     for br in range(br_count):
         branch_buttons = parser.find_branches()
         branch = branch_buttons[br]
+        branch_name = branch.text.strip()
+
         parser.choose_branch(branch)  # откатываемся к этой странице филиалов
         parser.choose_individual_services()
         parser.choose_specialist()
 
-        m_count = len(parser.find_masters())
-        print("Видим мастеров:", m_count)
+        master_buttons = parser.find_masters()
+        m_count = len(master_buttons)
+        print("Видим мастеров:", m_count-1)
+
         for m in range(1, m_count):  # 0 = Любой сотрудник
-            master_buttons = parser.find_masters()
             master = master_buttons[m]
+            master_name = master.text.strip()
+
             parser.choose_master(master)  # откатываемся к этой странице мастеров
             parser.choose_service_page()
-            parser.select_min_service()
+            min_time = parser.select_min_service()
             parser.choose_date_and_time()
 
             # parser.go_back(parser.depth['master'])
@@ -39,9 +44,10 @@ def main():
             # parser.go_back(parser.depth['date_and_time'])
             # parser.go_back(parser.depth['service_page'])
 
-            parser.click_working_days(depth_days)
-            parser.count_timeslots()
-            break
+            parser.check_working_days(today, depth_days, master_name, min_time, branch_name)
+            parser.upsert_branches_dict(master_name, branch_name)
+
+            break  # todo remove
         # parser.go_back(parser.depth['branch'])
         break
 
