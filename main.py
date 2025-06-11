@@ -32,6 +32,7 @@ def main():
 
         for m in range(1, m_count):  # 0 = Любой сотрудник
             print(f'--------> {m = }')
+            master_buttons = parser.find_masters()
             master = master_buttons[m]
             master_name = master.text.strip()
             print(f'{master_name = }')
