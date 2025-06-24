@@ -4,7 +4,7 @@ from datetime import datetime
 
 URL = "https://n82183.yclients.com/"
 CITY = 'Москва'
-depth_days = 30
+depth_days = 30  # глубина сканирования
 today = datetime.now()
 
 

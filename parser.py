@@ -154,26 +154,28 @@ class YCParser:
             self.pause()
 
 
-    def click_working_days(self, working_days, master_name, min_time, branch_name) -> datetime:
-        while current_date < depth_date:  # пока дата не превысила текущую
-
-        working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
-        print("Найдено рабочих дней:", len(working_days))
-        if not working_days:
-            print('-> no more working_days')
+    def click_working_days(self, working_days, depth_date, master_name, min_time, branch_name) -> [datetime, bool]:
+        first_launch = True
         for day in working_days:
             try:
-                print(f'{day = }')
-                print(f'{day.get_attribute("data-locator-date") = }')
-                curren_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
-                if curren_date.day == 1:
+                print(f'++ day = {day.get_attribute("data-locator-date")}')
+                cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
+
+                if cursor_date >= depth_date:  # достигли глубины сканирования
+                    print(f'{cursor_date >= depth_date = }')
+                    return cursor_date, False
+
+                if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                     print('curren_date.day == 1')
+                    return cursor_date, True
 
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
                 self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
                 day.click()  # клик по рабочему дню
                 self.pause()
                 self.count_timeslots(master_name, min_time)
+                first_launch = False
+
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
 
