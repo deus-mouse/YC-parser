@@ -140,15 +140,17 @@ class YCParser:
             if not working_days:
                 print('-> no more working_days')
                 break
-            _date = self.click_working_days(working_days, master_name, min_time, branch_name)
+            _date, end = self.click_working_days(working_days, depth_date, master_name, min_time, branch_name)
             print(f'{current_date = }')
             print(f'{depth_date = }')
             print(f'{current_date < depth_date = }')
-
-            arrow_right = self.wait.until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
-            )
-            arrow_right.click()
+            if end:
+                print('END')
+                break
+            # arrow_right = self.wait.until(
+            #     EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
+            # )
+            # arrow_right.click()
 
             current_date = _date
             self.pause()
