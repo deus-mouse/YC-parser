@@ -133,11 +133,11 @@ class YCParser:
         last_day_on_first_page = None
 
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
-        while current_date < depth_date:  # пока дата не превысила текущую
+        while True:  # пока дата не превысила текущую
             print('-> WHILE')
             working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
             print("Найдено рабочих дней:", len(working_days))
-            cursor_date, is_end = self.click_working_days(working_days, depth_date, master_name, min_time, branch_name)
+            is_end = self.click_working_days(working_days, depth_date, master_name, min_time, branch_name)
             print(f'{current_date = }')
             print(f'{depth_date = }')
             print(f'{current_date < depth_date = }')
@@ -149,7 +149,6 @@ class YCParser:
             # )
             # arrow_right.click()
 
-            current_date = cursor_date
             self.pause()
 
 
@@ -162,11 +161,11 @@ class YCParser:
 
                 if cursor_date >= depth_date:  # достигли глубины сканирования
                     print(f'{cursor_date >= depth_date = }')
-                    return cursor_date, False
+                    return True
 
                 if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                     print('curren_date.day == 1')
-                    return cursor_date, True
+                    return False
 
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
                 self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
@@ -178,12 +177,7 @@ class YCParser:
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
 
-        last_working_day_str = working_days[-1].get_attribute("data-locator-date")
-        last_working_day = datetime.strptime(last_working_day_str, '%Y-%m-%d')
-
-
-
-        return last_working_day
+        return False
 
     def count_timeslots(self, master_name, min_time):
         time_slots = self.driver.find_elements(By.CSS_SELECTOR, 'ui-kit-chips[data-locator="timeslot"]')
