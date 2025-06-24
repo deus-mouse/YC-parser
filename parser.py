@@ -128,23 +128,20 @@ class YCParser:
         self.pause()
 
     def check_working_days(self, today, depth: int, master_name: str, min_time: int, branch_name: str):
+        current_date = today
         depth_date = today + timedelta(days=depth)
         last_day_on_first_page = None
 
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
-        current_date = today
         while current_date < depth_date:  # пока дата не превысила текущую
             print('-> WHILE')
             working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
             print("Найдено рабочих дней:", len(working_days))
-            if not working_days:
-                print('-> no more working_days')
-                break
-            _date, end = self.click_working_days(working_days, depth_date, master_name, min_time, branch_name)
+            cursor_date, is_end = self.click_working_days(working_days, depth_date, master_name, min_time, branch_name)
             print(f'{current_date = }')
             print(f'{depth_date = }')
             print(f'{current_date < depth_date = }')
-            if end:
+            if is_end:
                 print('END')
                 break
             # arrow_right = self.wait.until(
@@ -152,7 +149,7 @@ class YCParser:
             # )
             # arrow_right.click()
 
-            current_date = _date
+            current_date = cursor_date
             self.pause()
 
 
