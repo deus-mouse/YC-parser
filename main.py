@@ -10,7 +10,7 @@ today = datetime.now()
 
 def main():
     parser = YCParser(url=URL, city=CITY,
-                      # st=3
+                      st=1
                       )
     parser.open_site()
     parser.choose_city()
@@ -21,6 +21,7 @@ def main():
         branch_buttons = parser.find_branches()
         branch = branch_buttons[br]
         branch_name = branch.text.strip()
+        print(f'Выбираем филиал: {branch_name}')
 
         parser.choose_branch(branch)  # откатываемся к этой странице филиалов
         parser.choose_individual_services()
@@ -49,7 +50,7 @@ def main():
             # parser.go_back(parser.depth['date_and_time'])
             # parser.go_back(parser.depth['service_page'])
 
-            # break  # todo remove
+            break  # todo remove
         # parser.go_back(parser.depth['branch'])
         break
 

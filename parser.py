@@ -138,7 +138,7 @@ class YCParser:
             working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
             print("Найдено рабочих дней:", len(working_days))
             if not working_days:
-                print('-> WHILE break')
+                print('-> no more working_days')
                 break
             _date = self.click_working_days(working_days, master_name, min_time, branch_name)
             print(f'{current_date = }')
@@ -151,12 +151,24 @@ class YCParser:
             arrow_right.click()
 
             current_date = _date
-
+            self.pause()
 
 
     def click_working_days(self, working_days, master_name, min_time, branch_name) -> datetime:
+        while current_date < depth_date:  # пока дата не превысила текущую
+
+        working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
+        print("Найдено рабочих дней:", len(working_days))
+        if not working_days:
+            print('-> no more working_days')
         for day in working_days:
             try:
+                print(f'{day = }')
+                print(f'{day.get_attribute("data-locator-date") = }')
+                curren_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
+                if curren_date.day == 1:
+                    print('curren_date.day == 1')
+
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
                 self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
                 day.click()  # клик по рабочему дню
