@@ -161,7 +161,7 @@ class YCParser:
 
                 if cursor_date >= depth_date:  # достигли глубины сканирования
                     print(f'{cursor_date >= depth_date = }')
-                    return True
+                    return depth_date, True
 
                 if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                     print('curren_date.day == 1')
