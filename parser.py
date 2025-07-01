@@ -137,28 +137,31 @@ class YCParser:
             print('-> WHILE')
             working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
             print("Найдено рабочих дней:", len(working_days))
-            current_date, is_end = self.click_working_days(working_days, depth_date, master_name, min_time, branch_name)
+            current_date, is_end = self.click_working_days(working_days, depth_date, current_date, master_name, min_time, branch_name)
             print(f'{current_date = }')
             print(f'{depth_date = }')
             print(f'{current_date < depth_date = }')
             # if is_end:
             #     print('END')
             #     break
-            # arrow_right = self.wait.until(
-            #     EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
-            # )
-            # arrow_right.click()
+            arrow_right = self.wait.until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
+            )
+            arrow_right.click()
 
             self.pause()
 
 
-    def click_working_days(self, working_days, depth_date, master_name, min_time, branch_name) -> [datetime, bool]:
+    def click_working_days(self, working_days, depth_date, current_date, master_name, min_time, branch_name) -> [datetime, bool]:
         # first_launch = True
-        for day in working_days:
+        for day in working_days:  # todo в цикле если нерабочий, то continue
             try:
                 # print(f'++ day = {day.get_attribute("data-locator-date")}')
                 cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
                 print(f'++ day = {cursor_date}')
+                if current_date <= cursor_date:  # уже сканили
+                    print(f'уже сканили, {current_date <= cursor_date = }')
+                    continue
 
                 if cursor_date >= depth_date:  # достигли глубины сканирования
                     print(f'достигли глубины сканирования, {cursor_date >= depth_date = }')
