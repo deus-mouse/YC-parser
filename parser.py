@@ -133,17 +133,17 @@ class YCParser:
         last_day_on_first_page = None
 
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
-        while True:  # пока дата не превысила текущую
+        while current_date < depth_date:  # пока дата не превысила текущую
             print('-> WHILE')
             working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
             print("Найдено рабочих дней:", len(working_days))
-            is_end = self.click_working_days(working_days, depth_date, master_name, min_time, branch_name)
+            current_date, is_end = self.click_working_days(working_days, depth_date, master_name, min_time, branch_name)
             print(f'{current_date = }')
             print(f'{depth_date = }')
             print(f'{current_date < depth_date = }')
-            if is_end:
-                print('END')
-                break
+            # if is_end:
+            #     print('END')
+            #     break
             # arrow_right = self.wait.until(
             #     EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
             # )
@@ -153,23 +153,32 @@ class YCParser:
 
 
     def click_working_days(self, working_days, depth_date, master_name, min_time, branch_name) -> [datetime, bool]:
-        first_launch = True
+        # first_launch = True
         for day in working_days:
             try:
-                print(f'++ day = {day.get_attribute("data-locator-date")}')
+                # print(f'++ day = {day.get_attribute("data-locator-date")}')
                 cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
+                print(f'++ day = {cursor_date}')
 
                 if cursor_date >= depth_date:  # достигли глубины сканирования
-                    print(f'{cursor_date >= depth_date = }')
-                    return depth_date, True
+                    print(f'достигли глубины сканирования, {cursor_date >= depth_date = }')
+                    return cursor_date, True
 
-                if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
+                # if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
+                if cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                     print('curren_date.day == 1')
-                    return False
+                    return cursor_date, False
 
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
-                self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
+                # self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
+                # модифицировано: уточненный селектор и ожидание кликабельности конкретного элемента day
+                locator = (By.CSS_SELECTOR, f'[data-locator="working_day"][data-locator-date="{day.get_attribute("data-locator-date")}"]')
+                self.wait.until(EC.element_to_be_clickable(locator))
+                print("-> day.click")
+
                 day.click()  # клик по рабочему дню
+                print("<- day.click")
+
                 self.pause()
                 self.count_timeslots(master_name, min_time)
                 first_launch = False
@@ -177,12 +186,13 @@ class YCParser:
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
 
-        return False
+        return cursor_date, False
 
     def count_timeslots(self, master_name, min_time):
+        print("-> count_timeslots")
         time_slots = self.driver.find_elements(By.CSS_SELECTOR, 'ui-kit-chips[data-locator="timeslot"]')
         count = len(time_slots)
-        # print("Найдено временных интервалов:", count)
+        print("Найдено временных интервалов:", count)
         self.masters[master_name] += min_time * count
 
     def upsert_branches_dict(self, master_name, branch_name):
