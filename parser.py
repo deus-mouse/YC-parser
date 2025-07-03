@@ -163,19 +163,21 @@ class YCParser:
                 cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
                 print(f'++ day = {cursor_date}')
 
-                if current_date < datetime.now():
-                    print(f'{current_date = } в прошлом')
+                if cursor_date.date() < datetime.now().date():
+                    print(f'{cursor_date = } в прошлом')
                     continue
 
-                elif cursor_date >= depth_date:  # достигли глубины сканирования
+                elif cursor_date.date() > depth_date.date():  # достигли глубины сканирования
                     print(f'достигли глубины сканирования, {cursor_date >= depth_date = }')
                     return cursor_date, True
 
-                elif current_date <= cursor_date:  # уже сканили
+                elif cursor_date.date() < cursor_date.date():  # уже сканили
                     print(f'уже сканили, {current_date <= cursor_date = }')
                     continue
 
-
+                if day.get_attribute("data-locator") == "non_working_day":
+                    print(f'non_working_day, {cursor_date = }')
+                    continue
 
                 # if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                 if cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
