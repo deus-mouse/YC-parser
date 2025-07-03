@@ -135,9 +135,11 @@ class YCParser:
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
         while current_date < depth_date:  # пока дата не превысила текущую
             print('-> WHILE')
-            working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
-            print("Найдено рабочих дней:", len(working_days))
-            current_date, is_end = self.click_working_days(working_days, depth_date, current_date, master_name, min_time, branch_name)
+            # working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
+            # elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day')
+            elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day[data-locator="working_day"], div.calendar-day[data-locator="non_working_day"]')
+            print("Найдено дней:", len(elements))
+            current_date, is_end = self.click_working_days(elements, current_date, depth_date, master_name, min_time, branch_name)
             print(f'{current_date = }')
             print(f'{depth_date = }')
             print(f'{current_date < depth_date = }')
@@ -152,20 +154,28 @@ class YCParser:
             self.pause()
 
 
-    def click_working_days(self, working_days, depth_date, current_date, master_name, min_time, branch_name) -> [datetime, bool]:
-        # first_launch = True
-        for day in working_days:  # todo в цикле если нерабочий, то continue
+    def click_working_days(self, elements, current_date, depth_date, master_name, min_time, branch_name) -> [datetime, bool]:
+        first_launch = True
+        cursor_date = datetime.strptime(elements[0].get_attribute("data-locator-date"), '%Y-%m-%d')
+        for day in elements:  # todo в цикле если нерабочий, то continue
             try:
                 # print(f'++ day = {day.get_attribute("data-locator-date")}')
                 cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
                 print(f'++ day = {cursor_date}')
-                if current_date <= cursor_date:  # уже сканили
+
+                if current_date < datetime.now():
+                    print(f'{current_date = } в прошлом')
+                    continue
+
+                elif cursor_date >= depth_date:  # достигли глубины сканирования
+                    print(f'достигли глубины сканирования, {cursor_date >= depth_date = }')
+                    return cursor_date, True
+
+                elif current_date <= cursor_date:  # уже сканили
                     print(f'уже сканили, {current_date <= cursor_date = }')
                     continue
 
-                if cursor_date >= depth_date:  # достигли глубины сканирования
-                    print(f'достигли глубины сканирования, {cursor_date >= depth_date = }')
-                    return cursor_date, True
+
 
                 # if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                 if cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
