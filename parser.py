@@ -7,7 +7,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException
 from collections import defaultdict
+from colorama import init, Fore, Style
 
+init(autoreset=True)  # для очистки консоли
 
 class YCParser:
     def __init__(self, url, city, st=0.5):
@@ -164,19 +166,20 @@ class YCParser:
                 print(f'++ day = {cursor_date}')
 
                 if cursor_date.date() < datetime.now().date():
-                    print(f'{cursor_date = } в прошлом')
+                    print(f'{cursor_date = } {Fore.RED}в прошлом{Style.RESET_ALL}')
                     continue
 
                 elif cursor_date.date() > depth_date.date():  # достигли глубины сканирования
-                    print(f'достигли глубины сканирования, {cursor_date >= depth_date = }')
+                    print(f'{cursor_date >= depth_date = }, {Fore.GREEN}достигли глубины сканирования{Style.RESET_ALL}')
                     return cursor_date, True
 
                 elif cursor_date.date() < cursor_date.date():  # уже сканили
-                    print(f'уже сканили, {current_date <= cursor_date = }')
+                    print(f'{current_date <= cursor_date = }, {Fore.YELLOW}уже сканили{Style.RESET_ALL}')
                     continue
 
                 if day.get_attribute("data-locator") == "non_working_day":
-                    print(f'non_working_day, {cursor_date = }')
+                    print(f'{cursor_date = } {Fore.BLUE}non_working_day{Style.RESET_ALL}')
+
                     continue
 
                 # if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
