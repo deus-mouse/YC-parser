@@ -135,13 +135,16 @@ class YCParser:
         last_day_on_first_page = None
 
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
+        first_launch = True
         while current_date < depth_date:  # пока дата не превысила текущую
             print('-> WHILE')
             # working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
             # elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day')
             elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day[data-locator="working_day"], div.calendar-day[data-locator="non_working_day"]')
             print("Найдено дней:", len(elements))
-            current_date, is_end = self.click_working_days(elements, current_date, depth_date, master_name, min_time, branch_name)
+            current_date, is_end = self.click_working_days(elements, current_date, depth_date, master_name, min_time, branch_name, first_launch)
+            first_launch = False
+
             print(f'{current_date = }')
             print(f'{depth_date = }')
             print(f'{current_date < depth_date = }')
@@ -156,8 +159,7 @@ class YCParser:
             self.pause()
 
 
-    def click_working_days(self, elements, current_date, depth_date, master_name, min_time, branch_name) -> [datetime, bool]:
-        first_launch = True
+    def click_working_days(self, elements, current_date, depth_date, master_name, min_time, branch_name, first_launch) -> [datetime, bool]:
         cursor_date = datetime.strptime(elements[0].get_attribute("data-locator-date"), '%Y-%m-%d')
         for day in elements:  # todo в цикле если нерабочий, то continue
             try:
@@ -165,27 +167,28 @@ class YCParser:
                 cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
                 print(f'++ day = {cursor_date}')
 
+                if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
+                # if cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
+                    print(f'{first_launch = }, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
+                    return cursor_date, False
+
                 if cursor_date.date() < datetime.now().date():
                     print(f'{cursor_date = } {Fore.RED}в прошлом{Style.RESET_ALL}')
                     continue
 
-                elif cursor_date.date() > depth_date.date():  # достигли глубины сканирования
+                if cursor_date.date() > depth_date.date():  # достигли глубины сканирования
                     print(f'{cursor_date >= depth_date = }, {Fore.GREEN}достигли глубины сканирования{Style.RESET_ALL}')
                     return cursor_date, True
 
-                elif cursor_date.date() < cursor_date.date():  # уже сканили
+                if cursor_date.date() < cursor_date.date():  # уже сканили
                     print(f'{current_date <= cursor_date = }, {Fore.YELLOW}уже сканили{Style.RESET_ALL}')
                     continue
 
                 if day.get_attribute("data-locator") == "non_working_day":
                     print(f'{cursor_date = } {Fore.BLUE}non_working_day{Style.RESET_ALL}')
-
                     continue
 
-                # if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
-                if cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
-                    print('curren_date.day == 1')
-                    return cursor_date, False
+
 
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
                 # self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
@@ -199,7 +202,6 @@ class YCParser:
 
                 self.pause()
                 self.count_timeslots(master_name, min_time)
-                first_launch = False
 
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
