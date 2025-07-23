@@ -10,7 +10,7 @@ today = datetime.now()
 
 def main():
     parser = YCParser(url=URL, city=CITY,
-                      st=1
+                      st=2
                       )
     parser.open_site()
     parser.choose_city()
