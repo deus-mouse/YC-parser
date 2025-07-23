@@ -140,7 +140,8 @@ class YCParser:
             print('-> WHILE')
             # working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
             # elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day')
-            elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day[data-locator="working_day"], div.calendar-day[data-locator="non_working_day"]')
+            # elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day[data-locator="working_day"], div.calendar-day[data-locator="non_working_day"]')
+            elements = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.calendar-day[data-locator="working_day"], div.calendar-day[data-locator="non_working_day"]')))
             print("Найдено дней:", len(elements))
             current_date, is_end = self.click_working_days(elements, current_date, depth_date, master_name, min_time, branch_name, first_launch)
             first_launch = False
@@ -151,10 +152,10 @@ class YCParser:
             # if is_end:
             #     print('END')
             #     break
-            arrow_right = self.wait.until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
-            )
-            arrow_right.click()
+            # arrow_right = self.wait.until(
+            #     EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
+            # )
+            # arrow_right.click()
 
             self.pause()
 
