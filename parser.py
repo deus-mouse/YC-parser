@@ -159,7 +159,6 @@ class YCParser:
 
             self.pause()
 
-
     def click_working_days(self, elements, current_date, depth_date, master_name, min_time, branch_name, first_launch) -> [datetime, bool]:
         cursor_date = datetime.strptime(elements[0].get_attribute("data-locator-date"), '%Y-%m-%d')
         for day in elements:  # todo в цикле если нерабочий, то continue
