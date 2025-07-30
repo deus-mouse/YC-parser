@@ -219,7 +219,6 @@ class YCParser:
         self.branches[branch_name] += self.masters[master_name]
 
 
-
     def quit(self):
         time.sleep(3)
         self.driver.quit()
