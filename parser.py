@@ -190,7 +190,6 @@ class YCParser:
                     continue
 
 
-
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
                 # self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
                 # модифицировано: уточненный селектор и ожидание кликабельности конкретного элемента day
