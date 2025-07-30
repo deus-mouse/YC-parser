@@ -221,7 +221,6 @@ class YCParser:
 
 
 
-
     def quit(self):
         time.sleep(3)
         self.driver.quit()
