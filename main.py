@@ -31,18 +31,18 @@ def main():
         m_count = len(master_buttons)
         print("Видим мастеров:", m_count-1)
 
-        # for m in range(1, m_count):  # 0 = "Любой сотрудник"
+        # for m in range(1, m_count):  # 0 = "Любой специалист"
         #     print(f'--------> {m = }')
         #     master_buttons = parser.find_masters()
         #     master = master_buttons[m]
         #     master_name = master.text.strip()
         #     print(f'{master_name = }')
-        while len(parser.masters) < m_count-1:  # 0 = "Любой сотрудник"
+        while len(parser.masters) < m_count-1:  # 0 = "Любой специалист"
             print(f'--------> {len(parser.masters) = }')
             master_buttons = parser.find_masters()
 
             # master = next((name for name in master_buttons if name not in masters), None)  # ← добавил эту строку
-            master = next((master for master in master_buttons if master.text.strip() not in master_buttons), None)
+            master = next((master for master in master_buttons if master.text.strip() not in parser.masters and master.text.strip() != "Любой специалист"), None)
 
             master_name = master.text.strip()
             print(f'{master_name = }')
@@ -58,7 +58,8 @@ def main():
             # parser.go_back(parser.depth['service'])
             # parser.go_back(parser.depth['date_and_time'])
             # parser.go_back(parser.depth['service_page'])
-
+            print(f'{parser.branches = }')
+            print(f'{parser.masters = }')
             # break  # todo remove
         # parser.go_back(parser.depth['branch'])
         break
