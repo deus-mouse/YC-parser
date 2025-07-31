@@ -9,5 +9,6 @@ def check_working_days(self):
     # остальная часть метода...
 
 masters = {"Рома": 1000, "Антон": 1000}
-
-master = master_buttons[m if in]
+master_buttons = {"Рома": 1000, "Антон": 1000, "Маринаfff": 1000, "Лена": 1000}
+master = next((name for name in master_buttons if name not in masters), None)  # ← добавил эту строку
+print(master)
