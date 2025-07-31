@@ -7,3 +7,7 @@ def check_working_days(self):
         filtered_elements.append(el)
     elements = filtered_elements
     # остальная часть метода...
+
+masters = {"Рома": 1000, "Антон": 1000}
+
+master = master_buttons[m if in]
