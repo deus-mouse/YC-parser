@@ -31,21 +31,31 @@ def main():
         m_count = len(master_buttons)
         print("Видим мастеров:", m_count-1)
 
-        for m in range(1, m_count):  # 0 = Любой сотрудник
-            print(f'--------> {m = }')
+        # for m in range(1, m_count):  # 0 = "Любой сотрудник"
+        #     print(f'--------> {m = }')
+        #     master_buttons = parser.find_masters()
+        #     master = master_buttons[m]
+        #     master_name = master.text.strip()
+        #     print(f'{master_name = }')
+        while len(parser.masters) < m_count-1:  # 0 = "Любой сотрудник"
+            print(f'--------> {len(parser.masters) = }')
             master_buttons = parser.find_masters()
-            master = master_buttons[m]
+
+            # master = master_buttons[m if in ]
+
+            master = next((master for master in master_buttons if master.text.strip() not in master_buttons), None)
+
             master_name = master.text.strip()
             print(f'{master_name = }')
 
-            parser.choose_master(master)  # откатываемся к этой странице мастеров
+            parser.choose_master(master)  # страница мастеров
             parser.choose_service_page()
             min_time = parser.select_min_service()
             parser.choose_date_and_time()
             parser.check_working_days(today, depth_days, master_name, min_time, branch_name)
             parser.upsert_branches_dict(master_name, branch_name)
 
-            parser.go_back(parser.depths['master'])
+            parser.go_back(parser.depths['master'])  # откатываемся к странице мастеров
             # parser.go_back(parser.depth['service'])
             # parser.go_back(parser.depth['date_and_time'])
             # parser.go_back(parser.depth['service_page'])
