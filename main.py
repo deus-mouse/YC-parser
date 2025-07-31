@@ -41,8 +41,7 @@ def main():
             print(f'--------> {len(parser.masters) = }')
             master_buttons = parser.find_masters()
 
-            # master = master_buttons[m if in ]
-
+            # master = next((name for name in master_buttons if name not in masters), None)  # ← добавил эту строку
             master = next((master for master in master_buttons if master.text.strip() not in master_buttons), None)
 
             master_name = master.text.strip()
