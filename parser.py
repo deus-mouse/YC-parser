@@ -152,10 +152,10 @@ class YCParser:
             # if is_end:
             #     print('END')
             #     break
-            arrow_right = self.wait.until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
-            )
-            arrow_right.click()
+            # arrow_right = self.wait.until(
+            #     EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
+            # )
+            # arrow_right.click()
 
             self.pause()
 
@@ -167,7 +167,7 @@ class YCParser:
                 cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
                 print(f'++ day = {cursor_date}')
 
-                if not first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
+                if first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                 # if cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                     print(f'{first_launch = }, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
                     return cursor_date, False
