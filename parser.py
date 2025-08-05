@@ -153,10 +153,10 @@ class YCParser:
             # if is_end:
             #     print('END')
             #     break
-            # arrow_right = self.wait.until(
-            #     EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
-            # )
-            # arrow_right.click()
+            arrow_right = self.wait.until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
+            )
+            arrow_right.click()
 
             self.pause()
 
@@ -171,6 +171,10 @@ class YCParser:
                 cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
                 print(f'++ day = {cursor_date}')
 
+                if cursor_date.date() > depth_date.date():  # достигли глубины сканирования
+                    print(f'{cursor_date >= depth_date = }, {Fore.GREEN}достигли глубины сканирования{Style.RESET_ALL}')
+                    return cursor_date, True
+
                 # if first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                 # # if cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
                 #     print(f'{first_launch = }, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
@@ -179,10 +183,6 @@ class YCParser:
                 if prev_day > cursor_date.day:  # достигли начала след месяца. нужно снова спарсить раб. дни
                     print(f'{prev_day=}, {cursor_date.day=}, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
                     return cursor_date, False
-
-                if cursor_date.date() > depth_date.date():  # достигли глубины сканирования
-                    print(f'{cursor_date >= depth_date = }, {Fore.GREEN}достигли глубины сканирования{Style.RESET_ALL}')
-                    return cursor_date, True
 
                 if cursor_date.date() < datetime.now().date():
                     print(f'{cursor_date = } {Fore.RED}в прошлом{Style.RESET_ALL}')
