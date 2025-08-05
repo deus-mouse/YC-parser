@@ -201,10 +201,8 @@ class YCParser:
                 # модифицировано: уточненный селектор и ожидание кликабельности конкретного элемента day
                 locator = (By.CSS_SELECTOR, f'[data-locator="working_day"][data-locator-date="{day.get_attribute("data-locator-date")}"]')
                 self.wait.until(EC.element_to_be_clickable(locator))
-                print("-> day.click")
 
                 day.click()  # клик по рабочему дню
-                print("<- day.click")
 
                 self.pause()
                 self.count_timeslots(master_name, min_time)
