@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException
 from collections import defaultdict
 from colorama import init, Fore, Style
+import calendar
 
 init(autoreset=True)  # для очистки консоли
 
@@ -133,6 +134,7 @@ class YCParser:
         current_date = today
         depth_date = today + timedelta(days=depth)
         last_day_on_first_page = None
+        last_day = calendar.monthrange(today.year, today.month)[1]  # добавлено
 
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
         first_launch = True
@@ -161,36 +163,40 @@ class YCParser:
 
     def click_working_days(self, elements, current_date, depth_date, master_name, min_time, branch_name, first_launch) -> [datetime, bool]:
         cursor_date = datetime.strptime(elements[0].get_attribute("data-locator-date"), '%Y-%m-%d')
+        prev_day = 0
         for day in elements:  # todo в цикле если нерабочий, то continue
             try:
                 # print(f'++ day = {day.get_attribute("data-locator-date")}')
                 cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
                 print(f'++ day = {cursor_date}')
 
-                if first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
-                # if cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
-                    print(f'{first_launch = }, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
-                    return cursor_date, False
+                # if first_launch and cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
+                # # if cursor_date.day == 1:  # достигли начала след месяца. нужно снова спарсить раб. дни
+                #     print(f'{first_launch = }, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
+                #     return cursor_date, False
 
-                if cursor_date.date() < datetime.now().date():
-                    print(f'{cursor_date = } {Fore.RED}в прошлом{Style.RESET_ALL}')
-                    continue
+                if prev_day > cursor_date.day:  # достигли начала след месяца. нужно снова спарсить раб. дни
+                    print(f'{prev_day=}, {cursor_date.day=}, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
+                    return cursor_date, False
 
                 if cursor_date.date() > depth_date.date():  # достигли глубины сканирования
                     print(f'{cursor_date >= depth_date = }, {Fore.GREEN}достигли глубины сканирования{Style.RESET_ALL}')
                     return cursor_date, True
 
-                if cursor_date.date() < cursor_date.date():  # уже сканили
-                    print(f'{current_date <= cursor_date = }, {Fore.YELLOW}уже сканили{Style.RESET_ALL}')
+                if cursor_date.date() < datetime.now().date():
+                    print(f'{cursor_date = } {Fore.RED}в прошлом{Style.RESET_ALL}')
                     continue
+
+                # if cursor_date.date() < cursor_date.date():  # уже сканили
+                #     print(f'{current_date <= cursor_date = }, {Fore.YELLOW}уже сканили{Style.RESET_ALL}')
+                #     continue
 
                 if day.get_attribute("data-locator") == "non_working_day":
-                    print(f'{cursor_date = } {Fore.BLUE}non_working_day{Style.RESET_ALL}')
+                    print(f'{cursor_date = } {Fore.BLUE}нерабочий{Style.RESET_ALL}')
                     continue
 
 
-                self.driver.execute_script("arguments[0].scrollIntoView(true);", day)  # модифицировано
-                # self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="working_day"]')))
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", day)
                 # модифицировано: уточненный селектор и ожидание кликабельности конкретного элемента day
                 locator = (By.CSS_SELECTOR, f'[data-locator="working_day"][data-locator-date="{day.get_attribute("data-locator-date")}"]')
                 self.wait.until(EC.element_to_be_clickable(locator))
@@ -201,6 +207,7 @@ class YCParser:
 
                 self.pause()
                 self.count_timeslots(master_name, min_time)
+                prev_day = cursor_date.day
 
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
