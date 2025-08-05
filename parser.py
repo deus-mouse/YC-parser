@@ -134,7 +134,6 @@ class YCParser:
         current_date = today
         depth_date = today + timedelta(days=depth)
         last_day_on_first_page = None
-        last_day = calendar.monthrange(today.year, today.month)[1]  # добавлено
 
         # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
         first_launch = True
@@ -164,6 +163,8 @@ class YCParser:
     def click_working_days(self, elements, current_date, depth_date, master_name, min_time, branch_name, first_launch) -> [datetime, bool]:
         cursor_date = datetime.strptime(elements[0].get_attribute("data-locator-date"), '%Y-%m-%d')
         prev_day = 0
+        last_day = calendar.monthrange(current_date.year, current_date.month)[1]
+
         for day in elements:  # todo в цикле если нерабочий, то continue
             try:
                 # print(f'++ day = {day.get_attribute("data-locator-date")}')
@@ -208,6 +209,10 @@ class YCParser:
                 self.pause()
                 self.count_timeslots(master_name, min_time)
                 prev_day = cursor_date.day
+
+                if cursor_date.day == last_day:
+                    print(f'{cursor_date = } {Fore.YELLOW}достигли последнего дня{Style.RESET_ALL}')
+                    return cursor_date, False
 
             except Exception as e:
                 print("Ошибка при клике по элементу:", e)
