@@ -10,7 +10,7 @@ today = datetime.now()
 
 def main():
     parser = YCParser(url=URL, city=CITY,
-                      st=2
+                      st=1
                       )
     parser.open_site()
     parser.choose_city()
@@ -38,6 +38,7 @@ def main():
         #     master_name = master.text.strip()
         #     print(f'{master_name = }')
         while len(parser.masters) < m_count-1:  # 0 = "Любой специалист"
+        # while len(parser.masters) < 2:  # 0 = "Любой специалист"
             print(f'--------> посчитано мастеров {len(parser.masters)}')
             master_buttons = parser.find_masters()
 
