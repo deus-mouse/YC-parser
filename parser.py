@@ -201,7 +201,6 @@ class YCParser:
                     print(f'{cursor_date = } {Fore.BLUE}нерабочий{Style.RESET_ALL}')
                     continue
 
-
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)
                 # модифицировано: уточненный селектор и ожидание кликабельности конкретного элемента day
                 locator = (By.CSS_SELECTOR, f'[data-locator="working_day"][data-locator-date="{day.get_attribute("data-locator-date")}"]')
