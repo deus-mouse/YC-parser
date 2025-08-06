@@ -97,6 +97,10 @@ class YCParser:
     def choose_master(self, master):
         master_name = master.text.strip()
         self.masters[master_name] = 0
+        # добавлено: прокрутка мастера в центр экрана
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", master)  # добавлено
+        # добавлено: ожидание, пока мастер станет видимым и активным
+        self.wait.until(lambda d: master.is_displayed() and master.is_enabled())  # добавлено
         master.click()
         self.pause()
 
@@ -142,6 +146,7 @@ class YCParser:
             # working_days = self.driver.find_elements(By.CSS_SELECTOR, '[data-locator="working_day"]')
             # elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day')
             elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day[data-locator="working_day"], div.calendar-day[data-locator="non_working_day"]')
+
             # elements = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.calendar-day[data-locator="working_day"], div.calendar-day[data-locator="non_working_day"]')))
             print("Найдено дней:", len(elements))
             current_date, is_end = self.click_working_days(elements, current_date, depth_date, master_name, min_time, branch_name, first_launch)
@@ -180,17 +185,17 @@ class YCParser:
                 #     print(f'{first_launch = }, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
                 #     return cursor_date, False
 
-                if prev_day > cursor_date.day:  # достигли начала след месяца. нужно снова спарсить раб. дни
-                    print(f'{prev_day=}, {cursor_date.day=}, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
-                    return cursor_date, False
+                # if prev_day > cursor_date.day:  # достигли начала след месяца. нужно снова спарсить раб. дни
+                #     print(f'{prev_day=}, {cursor_date.day=}, {Fore.MAGENTA}curren_date.day == 1{Style.RESET_ALL}')
+                #     return cursor_date, False
 
                 if cursor_date.date() < datetime.now().date():
                     print(f'{cursor_date = } {Fore.RED}в прошлом{Style.RESET_ALL}')
                     continue
 
-                # if cursor_date.date() < cursor_date.date():  # уже сканили
-                #     print(f'{current_date <= cursor_date = }, {Fore.YELLOW}уже сканили{Style.RESET_ALL}')
-                #     continue
+                if cursor_date.date() < current_date.date():  # уже сканили
+                    print(f'{current_date <= cursor_date = }, {Fore.YELLOW}уже сканили{Style.RESET_ALL}')
+                    continue
 
                 if day.get_attribute("data-locator") == "non_working_day":
                     print(f'{cursor_date = } {Fore.BLUE}нерабочий{Style.RESET_ALL}')
