@@ -205,9 +205,9 @@ class YCParser:
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", day)
                 # модифицировано: уточненный селектор и ожидание кликабельности конкретного элемента day
                 locator = (By.CSS_SELECTOR, f'[data-locator="working_day"][data-locator-date="{day.get_attribute("data-locator-date")}"]')
-                self.wait.until(EC.element_to_be_clickable(locator))
+                day_elem = self.wait.until(EC.element_to_be_clickable(locator))
 
-                day.click()  # клик по рабочему дню
+                day_elem.click()  # клик по рабочему дню
 
                 self.pause()
                 self.count_timeslots(master_name, min_time)
