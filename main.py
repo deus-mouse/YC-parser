@@ -35,11 +35,7 @@ def main():
         # while len(parser.masters) < 2:  # 0 = "Любой специалист"
             print(f'--------> посчитано мастеров {len(parser.masters)}')
             master_buttons = parser.find_masters()
-
-            # master = next((name for name in master_buttons if name not in masters), None)  # ← добавил эту строку
-
             master = next((master for master in master_buttons if master.text.strip() not in parser.masters and master.text.strip() != "Любой специалист"), None)
-
             master_name = master.text.strip()
             print(f'{master_name = }')
 
