@@ -63,7 +63,6 @@ class YCParser:
         self.pause()  
 
     def find_branches(self):
-        # branch_buttons = self.driver.find_elements(By.CLASS_NAME, "address")
         branch_buttons = self.driver.find_elements(By.CLASS_NAME, "title")
         self.pause()
 
