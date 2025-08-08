@@ -117,7 +117,6 @@ class YCParser:
         for el in elements:
             # print("Текст:", el.text)
             total_minutes = self.convert_to_minutes(el.text)
-            # print(f"{total_minutes = }")
             if total_minutes < min_time:
                 min_time = total_minutes
                 min_element = el
