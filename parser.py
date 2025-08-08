@@ -28,7 +28,7 @@ class YCParser:
 
     def convert_to_minutes(self, time_text):
         # Замена неразрывных пробелов, обрезка лишних пробелов
-        time_text = time_text.replace('\xa0', ' ').strip()  # модифицировано
+        time_text = time_text.replace('\xa0', ' ').strip()
         # Регулярное выражение с именованными группами для часов и минут
         pattern = r'^(?:(?P<hours>\d+)\s*ч)?\s*(?:(?P<minutes>\d+)\s*мин)?$'
         match = re.match(pattern, time_text)
