@@ -4,16 +4,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
-
+from parser import YCParser
 
 
 class Handler:
-    def __init__(self, st):
+    def __init__(self, st, url):
         self.st = st
-
+        self.url = url
+        self.city = None
         self.driver = webdriver.Chrome()
         self.wait = WebDriverWait(self.driver, 5)
-
 
     def open_site(self, url=None):
         if url:
@@ -29,6 +29,7 @@ class Handler:
             try:
                 title_el = item.find_element(By.CSS_SELECTOR, '[data-locator="city_title"]')
                 if title_el.text.strip() == city:
+                    self.city = city
                     return True
             except Exception:
                 continue
@@ -43,8 +44,9 @@ class Handler:
             return True
         return False
 
-    def parse_with_branches(self, city):
-        self.parser = parser
+    def start_from_city(self):
+        self.parser = YCParser(url=self.url, city=self.city, st=self.st)
+
 
     def pause(self):
         time.sleep(self.st)
