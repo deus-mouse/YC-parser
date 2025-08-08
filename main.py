@@ -31,12 +31,6 @@ def main():
         m_count = len(master_buttons)
         print("Видим мастеров:", m_count-1)
 
-        # for m in range(1, m_count):  # 0 = "Любой специалист"
-        #     print(f'--------> {m = }')
-        #     master_buttons = parser.find_masters()
-        #     master = master_buttons[m]
-        #     master_name = master.text.strip()
-        #     print(f'{master_name = }')
         while len(parser.masters) < m_count-1:  # 0 = "Любой специалист"
         # while len(parser.masters) < 2:  # 0 = "Любой специалист"
             print(f'--------> посчитано мастеров {len(parser.masters)}')
