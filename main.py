@@ -11,12 +11,16 @@ today = datetime.now()
 
 
 def main():
-    handler = Handler(st=1)
+    handler = Handler(st=1, url=URL_city)
     handler.open_site(URL_city)
 
-    from_city = handler.find_city(CITY)
-    from_masters = handler.find_masters(CITY)
+    city_on_page = handler.find_city(CITY)
+    masters_on_page = handler.find_masters()
 
+    if city_on_page:
+        handler.start_from_city()
+    elif masters_on_page:
+        handler.start_from_masters()
 
 
 
