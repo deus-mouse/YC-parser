@@ -3,7 +3,7 @@ from handler import Handler
 import time
 from datetime import datetime
 
-URL = "https://n82183.yclients.com/"
+URL_city = "https://n82183.yclients.com/"
 URL_masters = 'https://n248723.yclients.com/company/25809/personal/select-master?o=m739791'
 CITY = 'Москва'
 depth_days = 30  # глубина сканирования
@@ -11,11 +11,19 @@ today = datetime.now()
 
 
 def main():
-    handler = Handler()
+    handler = Handler(st=1)
+    handler.open_site(URL_city)
 
-    parser = YCParser(url=URL, city=CITY,
+    from_city = handler.find_city(CITY)
+    from_masters = handler.find_masters(CITY)
+
+
+
+
+    parser = YCParser(url=URL_city, city=CITY,
                       st=1
                       )
+
     parser.open_site()
     parser.choose_city()
     br_count = len(parser.find_branches())

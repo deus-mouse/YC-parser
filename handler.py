@@ -36,7 +36,12 @@ class Handler:
         self.pause()
         return False
 
-
+    def find_masters(self):
+        master_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
+        self.pause()
+        if master_buttons:
+            return True
+        return False
 
     def parse_with_branches(self, city):
         self.parser = parser
