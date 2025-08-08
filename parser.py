@@ -137,9 +137,7 @@ class YCParser:
     def check_working_days(self, today, depth: int, master_name: str, min_time: int, branch_name: str):
         current_date = today
         depth_date = today + timedelta(days=depth)
-        last_day_on_first_page = None
 
-        # working_date_list = [el.get_attribute("data-locator-date") for el in working_days]  # даты списком
         first_launch = True
         while current_date < depth_date:  # пока дата не превысила текущую
             print('-> WHILE')
