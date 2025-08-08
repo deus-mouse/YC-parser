@@ -5,12 +5,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import ElementClickInterceptedException
 from collections import defaultdict
 from colorama import init, Fore, Style
 import calendar
 
 init(autoreset=True)  # для очистки консоли
+
 
 class YCParser:
     def __init__(self, url, city, st=0.5):
