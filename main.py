@@ -3,6 +3,7 @@ import time
 from datetime import datetime
 
 URL = "https://n82183.yclients.com/"
+URL_masters = 'https://n248723.yclients.com/company/25809/personal/select-master?o=m739791'
 CITY = 'Москва'
 depth_days = 30  # глубина сканирования
 today = datetime.now()
