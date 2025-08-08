@@ -1,4 +1,5 @@
 from parser import YCParser
+from handler import Handler
 import time
 from datetime import datetime
 
@@ -10,6 +11,8 @@ today = datetime.now()
 
 
 def main():
+    handler = Handler()
+
     parser = YCParser(url=URL, city=CITY,
                       st=1
                       )
