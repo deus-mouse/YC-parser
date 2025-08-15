@@ -70,8 +70,10 @@ def main():  # добавлено
             continue_btn.click()  # добавлено
 
             # на странице выбора услуг разворачиваем все категории  # добавлено
+            # изменено: ищем стрелки категории (иконки arrow-down-light) data-locator="category_arrow"  # изменено
             time.sleep(1)  # добавлено
-            toggles = driver.find_elements(By.XPATH, "//button[contains(@aria-label,'развернуть')]")  # добавлено
+            toggles = driver.find_elements(By.CSS_SELECTOR,
+                                           "ui-kit-svg-icon[data-locator='category_arrow']")  # изменено
             for tog in toggles:  # добавлено
                 try:  # добавлено
                     tog.click()  # добавлено
