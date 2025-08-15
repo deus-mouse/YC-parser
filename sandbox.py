@@ -91,29 +91,31 @@ def main():  # добавлено
             min_minutes = None  # добавлено
             min_checkbox = None  # добавлено
             for row in service_rows:  # добавлено
-                print(f'{row=}')
+                # извлекаем длительность из span[data-locator="service_seance_length"]  # добавлено
+                try:  # добавлено
+                    dur_text = row.find_element(  # добавлено
+                        By.CSS_SELECTOR, "[data-locator='service_seance_length']"  # добавлено
+                    ).get_attribute("textContent")  # добавлено
+                    dur = parse_duration(dur_text)  # добавлено
+                except Exception:  # добавлено
+                    dur = parse_duration(row.text)  # добавлено
 
-                text = row.text  # добавлено
-                print(f'{text=}')
-                dur = parse_duration(text)  # добавлено
-                print(f'{dur=}')
-
-                if dur == 0:  # добавлено
+                if dur <= 0:  # добавлено
                     continue  # добавлено
+
                 if min_minutes is None or dur < min_minutes:  # добавлено
                     min_minutes = dur  # добавлено
-                    # находим чекбокс внутри строки  # добавлено
-                    try:  # добавлено
-                        checkbox = row.find_element(By.XPATH, ".//input[@type='checkbox']")  # добавлено
-                    except:  # добавлено
-                        checkbox = row.find_element(By.TAG_NAME, "button")  # добавлено
-                    min_checkbox = checkbox  # добавлено
-            if min_checkbox is None:  # добавлено
-                # если услуг нет, возвращаемся назад  # добавлено
+                    min_row = row  # добавлено
+
+            # если нашли минимальную услугу — кликаем по контейнеру строки (без чекбоксов)  # добавлено
+            if min_row is None:  # добавлено
                 driver.back()  # добавлено
                 continue  # добавлено
+            print(f'{min_row=}')
+            print(f'{min_row.text=}')
+            min_row.click()  # добавлено
 
-            min_checkbox.click()  # добавлено
+            # min_checkbox.click()  # добавлено
             # нажимаем продолжить  # добавлено
             continue_btn2 = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Продолжить')]")))  # добавлено
             continue_btn2.click()  # добавлено
