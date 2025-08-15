@@ -29,8 +29,8 @@ def get_staff_elements(driver):  # добавлено
 
 def get_service_rows(driver):  # добавлено
     """Возвращает элементы услуг на странице выбора услуг."""  # добавлено
-    # селектор ищет строку услуги с указанием стоимости; при необходимости изменить  # добавлено
-    return driver.find_elements(By.XPATH, "//div[contains(@class,'service')]")  # добавлено
+    # изменено: ищем элементы по data-locator='service_title' и возвращаем родительский контейнер center-part  # изменено
+    return driver.find_elements(By.XPATH, "//div[@data-locator='service_title']/ancestor::div[contains(@class, 'center-part')]")  # изменено
 
 def get_time_slots(driver):  # добавлено
     """Собирает список доступных временных слотов на текущей дате."""  # добавлено
@@ -63,6 +63,8 @@ def main():  # добавлено
             staff_elem = staff_elements[idx]  # добавлено
             staff_name = staff_elem.text.split("\n")[0]  # добавлено
             print(f'{staff_name=}')
+            if staff_name == 'Любой специалист':
+                continue
 
             staff_elem.click()  # добавлено
             # ждём кнопку "Продолжить" и нажимаем её  # добавлено
@@ -83,11 +85,19 @@ def main():  # добавлено
 
             # собираем все услуги и ищем минимальную длительность  # добавлено
             service_rows = get_service_rows(driver)  # добавлено
+            print(f'{service_rows=}')
+            print(f'{len(service_rows)=}')
+
             min_minutes = None  # добавлено
             min_checkbox = None  # добавлено
             for row in service_rows:  # добавлено
+                print(f'{row=}')
+
                 text = row.text  # добавлено
+                print(f'{text=}')
                 dur = parse_duration(text)  # добавлено
+                print(f'{dur=}')
+
                 if dur == 0:  # добавлено
                     continue  # добавлено
                 if min_minutes is None or dur < min_minutes:  # добавлено
