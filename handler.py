@@ -26,19 +26,22 @@ class Handler:
         self.pause()
 
     def find_city(self, city):
-        city_items = self.wait.until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.city-item")))
-        for item in city_items:
-            try:
+        try:
+            city_items = self.wait.until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.city-item")))
+            print(f'{city_items=}')
+            for item in city_items:
+                print(f'{item=}')
                 title_el = item.find_element(By.CSS_SELECTOR, '[data-locator="city_title"]')
+                print(f'{title_el.text.strip()=}')
+
                 if title_el.text.strip() == city:
                     self.city = city
                     return True
-            except Exception:
-                continue
-        print(f"Город {city} не найден.")
-        self.pause()
-        return False
+        except Exception:
+            print(f"Город {city} не найден.")
+            self.pause()
+            return False
 
     def find_masters(self):
         master_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
@@ -72,6 +75,7 @@ class Handler:
 
     def start_from_masters(self):
         self.parser = YCParser(url=self.url, st=self.st)
+        self.run_from_masters()
 
     def run_from_masters(self, branch_name=None):
         master_buttons = self.parser.find_masters()
