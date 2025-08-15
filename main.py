@@ -17,6 +17,8 @@ def main():
 
     city_on_page = handler.find_city(CITY)
     masters_on_page = handler.find_masters()
+    print(f'{city_on_page=}')
+    print(f'{masters_on_page=}')
 
     if city_on_page:
         handler.start_from_city()
