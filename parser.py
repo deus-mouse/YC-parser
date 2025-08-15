@@ -13,7 +13,7 @@ init(autoreset=True)  # для очистки консоли
 
 
 class YCParser:
-    def __init__(self, url, city, st=0.5):
+    def __init__(self, url, city=None, st=0.5):
         self.driver = webdriver.Chrome()
         self.wait = WebDriverWait(self.driver, 5)
         self.url = url
