@@ -13,7 +13,7 @@ today = datetime.now()
 
 def main():
     handler = Handler(st=1, url=URL_masters_Belorusskaya, today=today, depth_days=depth_days)
-    handler.open_site(URL_city)
+    handler.open_site(URL_masters_Belorusskaya)
 
     city_on_page = handler.find_city(CITY)
     masters_on_page = handler.find_masters()
