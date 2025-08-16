@@ -43,6 +43,16 @@ def move_to_next_day(driver):
     calendar = driver.find_element(By.TAG_NAME, "body")  
     calendar.send_keys(Keys.ARROW_RIGHT)  
 
+def click_arrows(driver):
+    toggles = driver.find_elements(By.CSS_SELECTOR,
+                                   "ui-kit-svg-icon[data-locator='category_arrow']")  # изменено
+    for tog in toggles:
+        try:
+            tog.click()
+        except:
+            pass
+    time.sleep(1)
+
 def main():  
     driver = webdriver.Chrome()  
     driver.get(URL)  
@@ -73,15 +83,9 @@ def main():
 
             # на странице выбора услуг разворачиваем все категории  
             # изменено: ищем стрелки категории (иконки arrow-down-light) data-locator="category_arrow"  # изменено
-            time.sleep(1)  
-            toggles = driver.find_elements(By.CSS_SELECTOR,
-                                           "ui-kit-svg-icon[data-locator='category_arrow']")  # изменено
-            for tog in toggles:  
-                try:  
-                    tog.click()  
-                except:  
-                    pass  
-            time.sleep(1)  
+            time.sleep(1)
+            click_arrows(driver)
+
 
             # собираем все услуги и ищем минимальную длительность  
             service_rows = get_service_rows(driver)  
