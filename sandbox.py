@@ -1,164 +1,164 @@
-from selenium import webdriver  # добавлено
-from selenium.webdriver.common.by import By  # добавлено
-from selenium.webdriver.support.ui import WebDriverWait  # добавлено
-from selenium.webdriver.support import expected_conditions as EC  # добавлено
-from selenium.common.exceptions import TimeoutException  # добавлено
-from selenium.webdriver.common.keys import Keys  # добавлено
-import re  # добавлено
-import datetime  # добавлено
-import time  # добавлено
+from selenium import webdriver  
+from selenium.webdriver.common.by import By  
+from selenium.webdriver.support.ui import WebDriverWait  
+from selenium.webdriver.support import expected_conditions as EC  
+from selenium.common.exceptions import TimeoutException  
+from selenium.webdriver.common.keys import Keys  
+import re  
+import datetime  
+import time  
 
-URL = "https://n625088.yclients.com/company/266762/personal/select-master?o="  # добавлено
+URL = "https://n625088.yclients.com/company/266762/personal/select-master?o="  
 
-def parse_duration(text: str) -> int:  # добавлено
-    """Извлекает длительность из текста услуги (в минутах)."""  # добавлено
-    match = re.search(r"(\d+)\s*ч", text)  # добавлено
-    minutes = 0  # добавлено
-    if match:  # добавлено
-        hours = int(match.group(1))  # добавлено
-        minutes += hours * 60  # добавлено
-    match = re.search(r"(\d+)\s*мин", text)  # добавлено
-    if match:  # добавлено
-        minutes += int(match.group(1))  # добавлено
-    return minutes  # добавлено
+def parse_duration(text: str) -> int:  
+    """Извлекает длительность из текста услуги (в минутах)."""  
+    match = re.search(r"(\d+)\s*ч", text)  
+    minutes = 0  
+    if match:  
+        hours = int(match.group(1))  
+        minutes += hours * 60  
+    match = re.search(r"(\d+)\s*мин", text)  
+    if match:  
+        minutes += int(match.group(1))  
+    return minutes  
 
-def get_staff_elements(driver):  # добавлено
-    """Возвращает элементы списка специалистов."""  # добавлено
+def get_staff_elements(driver):  
+    """Возвращает элементы списка специалистов."""  
     # обновлено: теперь ищем элементы app-staff-tile с классами staff-block и master-clickable  # изменено
     return driver.find_elements(By.CSS_SELECTOR, "app-staff-tile.staff-block.master-clickable")  # изменено
 
-def get_service_rows(driver):  # добавлено
-    """Возвращает элементы услуг на странице выбора услуг."""  # добавлено
+def get_service_rows(driver):  
+    """Возвращает элементы услуг на странице выбора услуг."""  
     # изменено: ищем элементы по data-locator='service_title' и возвращаем родительский контейнер center-part  # изменено
     return driver.find_elements(By.XPATH, "//div[@data-locator='service_title']/ancestor::div[contains(@class, 'center-part')]")  # изменено
 
-def get_time_slots(driver):  # добавлено
-    """Собирает список доступных временных слотов на текущей дате."""  # добавлено
-    # селектор находит кнопки с временем; подберите при необходимости  # добавлено
-    return driver.find_elements(By.XPATH, "//button[contains(text(), ':')]")  # добавлено
+def get_time_slots(driver):  
+    """Собирает список доступных временных слотов на текущей дате."""  
+    # селектор находит кнопки с временем; подберите при необходимости  
+    return driver.find_elements(By.XPATH, "//button[contains(text(), ':')]")  
 
-def move_to_next_day(driver):  # добавлено
-    """Переключается на следующий день в календаре."""  # добавлено
-    # отправляем клавишу вправо календарю; если не работает, можно кликать по конкретным ячейкам  # добавлено
-    calendar = driver.find_element(By.TAG_NAME, "body")  # добавлено
-    calendar.send_keys(Keys.ARROW_RIGHT)  # добавлено
+def move_to_next_day(driver):  
+    """Переключается на следующий день в календаре."""  
+    # отправляем клавишу вправо календарю; если не работает, можно кликать по конкретным ячейкам  
+    calendar = driver.find_element(By.TAG_NAME, "body")  
+    calendar.send_keys(Keys.ARROW_RIGHT)  
 
-def main():  # добавлено
-    driver = webdriver.Chrome()  # добавлено
-    driver.get(URL)  # добавлено
-    wait = WebDriverWait(driver, 30)  # добавлено
+def main():  
+    driver = webdriver.Chrome()  
+    driver.get(URL)  
+    wait = WebDriverWait(driver, 30)  
 
-    results = {}  # добавлено
+    results = {}  
 
-    try:  # добавлено
-        # ждём загрузки списка специалистов  # добавлено
-        wait.until(lambda d: len(get_staff_elements(d)) > 0)  # добавлено
-        staff_elements = get_staff_elements(driver)  # добавлено
+    try:  
+        # ждём загрузки списка специалистов  
+        wait.until(lambda d: len(get_staff_elements(d)) > 0)  
+        staff_elements = get_staff_elements(driver)  
         print(f'{staff_elements=}')
         print(f'{len(staff_elements)=}')
 
-        for idx in range(len(staff_elements)):  # добавлено
-            # перезагружаем список при каждой итерации, потому что DOM обновляется  # добавлено
-            staff_elements = get_staff_elements(driver)  # добавлено
-            staff_elem = staff_elements[idx]  # добавлено
-            staff_name = staff_elem.text.split("\n")[0]  # добавлено
+        for idx in range(len(staff_elements)):  
+            # перезагружаем список при каждой итерации, потому что DOM обновляется  
+            staff_elements = get_staff_elements(driver)  
+            staff_elem = staff_elements[idx]  
+            staff_name = staff_elem.text.split("\n")[0]  
             print(f'{staff_name=}')
             if staff_name == 'Любой специалист':
                 continue
 
-            staff_elem.click()  # добавлено
-            # ждём кнопку "Продолжить" и нажимаем её  # добавлено
-            continue_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Продолжить')]")))  # добавлено
-            continue_btn.click()  # добавлено
+            staff_elem.click()  
+            # ждём кнопку "Продолжить" и нажимаем её  
+            continue_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Продолжить')]")))  
+            continue_btn.click()  
 
-            # на странице выбора услуг разворачиваем все категории  # добавлено
+            # на странице выбора услуг разворачиваем все категории  
             # изменено: ищем стрелки категории (иконки arrow-down-light) data-locator="category_arrow"  # изменено
-            time.sleep(1)  # добавлено
+            time.sleep(1)  
             toggles = driver.find_elements(By.CSS_SELECTOR,
                                            "ui-kit-svg-icon[data-locator='category_arrow']")  # изменено
-            for tog in toggles:  # добавлено
-                try:  # добавлено
-                    tog.click()  # добавлено
-                except:  # добавлено
-                    pass  # добавлено
-            time.sleep(1)  # добавлено
+            for tog in toggles:  
+                try:  
+                    tog.click()  
+                except:  
+                    pass  
+            time.sleep(1)  
 
-            # собираем все услуги и ищем минимальную длительность  # добавлено
-            service_rows = get_service_rows(driver)  # добавлено
+            # собираем все услуги и ищем минимальную длительность  
+            service_rows = get_service_rows(driver)  
             print(f'{service_rows=}')
             print(f'{len(service_rows)=}')
 
-            min_minutes = None  # добавлено
-            min_checkbox = None  # добавлено
-            for row in service_rows:  # добавлено
-                # извлекаем длительность из span[data-locator="service_seance_length"]  # добавлено
-                try:  # добавлено
-                    dur_text = row.find_element(  # добавлено
-                        By.CSS_SELECTOR, "[data-locator='service_seance_length']"  # добавлено
-                    ).get_attribute("textContent")  # добавлено
-                    dur = parse_duration(dur_text)  # добавлено
-                except Exception:  # добавлено
-                    dur = parse_duration(row.text)  # добавлено
+            min_minutes = None  
+            min_checkbox = None  
+            for row in service_rows:  
+                # извлекаем длительность из span[data-locator="service_seance_length"]  
+                try:  
+                    dur_text = row.find_element(  
+                        By.CSS_SELECTOR, "[data-locator='service_seance_length']"  
+                    ).get_attribute("textContent")  
+                    dur = parse_duration(dur_text)  
+                except Exception:  
+                    dur = parse_duration(row.text)  
 
-                if dur <= 0:  # добавлено
-                    continue  # добавлено
+                if dur <= 0:  
+                    continue  
 
-                if min_minutes is None or dur < min_minutes:  # добавлено
-                    min_minutes = dur  # добавлено
-                    min_row = row  # добавлено
+                if min_minutes is None or dur < min_minutes:  
+                    min_minutes = dur  
+                    min_row = row  
 
-            # если нашли минимальную услугу — кликаем по контейнеру строки (без чекбоксов)  # добавлено
-            if min_row is None:  # добавлено
-                driver.back()  # добавлено
-                continue  # добавлено
+            # если нашли минимальную услугу — кликаем по контейнеру строки (без чекбоксов)  
+            if min_row is None:  
+                driver.back()  
+                continue  
             print(f'{min_row=}')
             print(f'{min_row.text=}')
-            min_row.click()  # добавлено
+            min_row.click()  
 
-            # min_checkbox.click()  # добавлено
-            # нажимаем продолжить  # добавлено
-            continue_btn2 = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Продолжить')]")))  # добавлено
-            continue_btn2.click()  # добавлено
+            # min_checkbox.click()  
+            # нажимаем продолжить  
+            continue_btn2 = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Продолжить')]")))  
+            continue_btn2.click()  
 
-            # страница выбора времени  # добавлено
-            time.sleep(2)  # добавлено
-            start_date = datetime.date.today()  # добавлено
-            end_date = start_date + datetime.timedelta(days=30)  # добавлено
-            total_slots = 0  # добавлено
+            # страница выбора времени  
+            time.sleep(2)  
+            start_date = datetime.date.today()  
+            end_date = start_date + datetime.timedelta(days=30)  
+            total_slots = 0  
 
-            # определяем текущую выбранную дату в календаре  # добавлено
-            current_date = start_date  # добавлено
-            while current_date <= end_date:  # добавлено
-                # выбираем ячейку с нужной датой, используя текст числа  # добавлено
-                try:  # добавлено
-                    day_elem = driver.find_element(By.XPATH, f"//td/button[normalize-space()='{current_date.day}']")  # добавлено
-                    day_elem.click()  # добавлено
-                    time.sleep(0.5)  # добавлено
-                    slots = get_time_slots(driver)  # добавлено
-                    total_slots += len(slots)  # добавлено
-                except:  # добавлено
-                    pass  # добавлено
-                # переходим к следующему дню с помощью стрелки  # добавлено
-                try:  # добавлено
-                    move_to_next_day(driver)  # добавлено
-                except:  # добавлено
-                    pass  # добавлено
-                current_date += datetime.timedelta(days=1)  # добавлено
+            # определяем текущую выбранную дату в календаре  
+            current_date = start_date  
+            while current_date <= end_date:  
+                # выбираем ячейку с нужной датой, используя текст числа  
+                try:  
+                    day_elem = driver.find_element(By.XPATH, f"//td/button[normalize-space()='{current_date.day}']")  
+                    day_elem.click()  
+                    time.sleep(0.5)  
+                    slots = get_time_slots(driver)  
+                    total_slots += len(slots)  
+                except:  
+                    pass  
+                # переходим к следующему дню с помощью стрелки  
+                try:  
+                    move_to_next_day(driver)  
+                except:  
+                    pass  
+                current_date += datetime.timedelta(days=1)  
 
-            # вычисляем общее количество свободных минут  # добавлено
-            total_minutes = total_slots * min_minutes  # добавлено
-            results[staff_name] = total_minutes  # добавлено
+            # вычисляем общее количество свободных минут  
+            total_minutes = total_slots * min_minutes  
+            results[staff_name] = total_minutes  
 
-            # возвращаемся к выбору специалиста  # добавлено
-            driver.get(URL)  # добавлено
-            wait.until(lambda d: len(get_staff_elements(d)) > 0)  # добавлено
+            # возвращаемся к выбору специалиста  
+            driver.get(URL)  
+            wait.until(lambda d: len(get_staff_elements(d)) > 0)  
 
-    except TimeoutException:  # добавлено
-        print("Ошибка загрузки страницы")  # добавлено
-    finally:  # добавлено
-        driver.quit()  # добавлено
+    except TimeoutException:  
+        print("Ошибка загрузки страницы")  
+    finally:  
+        driver.quit()  
 
-    print(results)  # добавлено
+    print(results)  
 
-if __name__ == "__main__":  # добавлено
-    main()  # добавлено
+if __name__ == "__main__":  
+    main()  
