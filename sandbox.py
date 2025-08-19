@@ -53,6 +53,10 @@ def click_arrows(driver):
             pass
     time.sleep(1)
 
+def find_and_click_min_service(driver):
+
+
+
 def main():  
     driver = webdriver.Chrome()  
     driver.get(URL)  
@@ -86,38 +90,39 @@ def main():
             time.sleep(1)
             click_arrows(driver)
 
+            # собираем все услуги и ищем минимальную длительность
+            find_and_click_min_service(driver)
 
-            # собираем все услуги и ищем минимальную длительность  
-            service_rows = get_service_rows(driver)  
+            service_rows = get_service_rows(driver)
             print(f'{service_rows=}')
             print(f'{len(service_rows)=}')
 
-            min_minutes = None  
-            min_checkbox = None  
-            for row in service_rows:  
-                # извлекаем длительность из span[data-locator="service_seance_length"]  
-                try:  
-                    dur_text = row.find_element(  
-                        By.CSS_SELECTOR, "[data-locator='service_seance_length']"  
-                    ).get_attribute("textContent")  
-                    dur = parse_duration(dur_text)  
-                except Exception:  
-                    dur = parse_duration(row.text)  
+            min_minutes = None
+            min_checkbox = None
+            for row in service_rows:
+                # извлекаем длительность из span[data-locator="service_seance_length"]
+                try:
+                    dur_text = row.find_element(
+                        By.CSS_SELECTOR, "[data-locator='service_seance_length']"
+                    ).get_attribute("textContent")
+                    dur = parse_duration(dur_text)
+                except Exception:
+                    dur = parse_duration(row.text)
 
-                if dur <= 0:  
-                    continue  
+                if dur <= 0:
+                    continue
 
-                if min_minutes is None or dur < min_minutes:  
-                    min_minutes = dur  
-                    min_row = row  
+                if min_minutes is None or dur < min_minutes:
+                    min_minutes = dur
+                    min_row = row
 
-            # если нашли минимальную услугу — кликаем по контейнеру строки (без чекбоксов)  
-            if min_row is None:  
-                driver.back()  
-                continue  
+            # если нашли минимальную услугу — кликаем по контейнеру строки (без чекбоксов)
+            if min_row is None:
+                driver.back()
+                continue
             print(f'{min_row=}')
             print(f'{min_row.text=}')
-            min_row.click()  
+            min_row.click()
 
             # min_checkbox.click()  
             # нажимаем продолжить  
