@@ -10,6 +10,7 @@ import time
 
 URL = "https://n625088.yclients.com/company/266762/personal/select-master?o="  
 
+
 def parse_duration(text: str) -> int:  
     """Извлекает длительность из текста услуги (в минутах)."""  
     match = re.search(r"(\d+)\s*ч", text)  
