@@ -26,7 +26,6 @@ def main():
         handler.start_from_masters()
 
 
-
     # parser = YCParser(url=URL_city, city=CITY,
     #                   st=1
     #                   )
