@@ -25,7 +25,6 @@ def main():
     elif masters_on_page:
         handler.start_from_masters()
 
-
     # parser = YCParser(url=URL_city, city=CITY,
     #                   st=1
     #                   )
