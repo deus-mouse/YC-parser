@@ -54,7 +54,7 @@ def click_arrows(driver):
     time.sleep(1)
 
 def find_and_click_min_service(driver):
-
+    pass
 
 
 def main():  
