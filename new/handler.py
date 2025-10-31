@@ -21,94 +21,12 @@ class Handler:
         self.parser = YCParser()
         self.parser(url=self.url, depth=self.depth, freeze=self.freeze)
 
-        self.parser.open_site()
+        self.parser.open_page()  # страничка с мастерами
 
+        self.find_masters()
 
-
-    def find_city(self, city):
-        try:
-            city_items = self.wait.until(
-                EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.city-item")))
-            print(f'{city_items=}')
-            for item in city_items:
-                print(f'{item=}')
-                title_el = item.find_element(By.CSS_SELECTOR, '[data-locator="city_title"]')
-                print(f'{title_el.text.strip()=}')
-
-                if title_el.text.strip() == city:
-                    self.city = city
-                    return True
-        except Exception:
-            print(f"Город {city} не найден.")
-            self.pause()
-            return False
 
     def find_masters(self):
-        master_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
-        self.pause()
-        if master_buttons:
-            return True
-        return False
-
-    def start_from_city(self):
-        self.parser = YCParser(url=self.url, city=self.city, st=self.freeze)
-        self.parser.open_site()
-        self.parser.choose_city()
-        br_count = len(self.parser.find_branches())
-        print("Видим филиалов:", br_count)
-
-        for br in range(br_count):
-            branch_buttons = self.parser.find_branches()
-            branch = branch_buttons[br]
-            branch_name = branch.text.strip()
-            print(f'Выбираем филиал: {branch_name}')
-
-            self.parser.choose_branch(branch)  # откатываемся к этой странице филиалов
-            self.parser.choose_individual_services()
-            self.parser.choose_specialist()
-            self.run_from_masters(branch_name)
-            break
-
-        self.parser.quit()
-        print(f'{self.parser.branches = }')
-        print(f'{self.parser.masters = }')
-
-    def start_from_masters(self):
-        self.parser = YCParser(url=self.url, st=self.freeze)
-        self.run_from_masters()
-
-    def run_from_masters(self, branch_name=None):
         master_buttons = self.parser.find_masters()
         m_count = len(master_buttons)
-        print("Видим мастеров:", m_count - 1)
-
-        while len(self.parser.masters) < m_count - 1:  # 0 = "Любой специалист"
-            # while len(parser.masters) < 2:  # 0 = "Любой специалист"
-            print(f'--------> посчитано мастеров {len(self.parser.masters)}')
-            master_buttons = self.parser.find_masters()
-            master = next((master for master in master_buttons if
-                           master.text.strip() not in self.parser.masters and master.text.strip() != "Любой специалист"),
-                          None)
-            master_name = master.text.strip()
-            print(f'{master_name = }')
-
-            self.parser.choose_master(master)  # страница мастеров
-            self.parser.choose_service_page()
-            min_time = self.parser.select_min_service()
-            self.parser.choose_date_and_time()
-            self.parser.check_working_days(self.today, self.depth_days, master_name, min_time, branch_name)
-            self.parser.upsert_branches_dict(master_name, branch_name)
-
-            self.parser.go_back(self.parser.depths['master'])  # откатываемся к странице мастеров
-            # parser.go_back(parser.depth['service'])
-            # parser.go_back(parser.depth['date_and_time'])
-            # parser.go_back(parser.depth['service_page'])
-            print(f'{self.parser.branches = }')
-            print(f'{self.parser.masters = }')
-            # break  # todo remove
-        # parser.go_back(parser.depth['branch'])
-
-
-
-    def pause(self):
-        time.sleep(self.freeze)
+        print("Видим мастеров:", m_count-1)
