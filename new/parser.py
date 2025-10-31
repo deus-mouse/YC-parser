@@ -13,18 +13,24 @@ init(autoreset=True)  # для очистки консоли
 
 
 class YCParser:
-    def __init__(self, url, city=None, st=0.5):
+    def __init__(self):
         self.driver = webdriver.Chrome()
         self.wait = WebDriverWait(self.driver, 5)
-        self.url = url
-        self.city = city
-        self.st = st
-        self.branches = defaultdict(int)
+
+        self.url = None
+        self.depth = None
+        self.freeze = None
         self.masters = defaultdict(int)
-        self.depths = {
-            'branch': 1,
-            'master': 2,
-        }
+
+    def __call__(self, *, url, depth, freeze):
+        self.url = url
+        self.depth = depth
+        self.freeze = freeze
+        return self
+
+    def open_site(self):
+        self.driver.get(self.url)
+        self.pause()
 
     def convert_to_minutes(self, time_text):
         # Замена неразрывных пробелов, обрезка лишних пробелов
@@ -40,12 +46,7 @@ class YCParser:
                 return total
         return float('inf')
 
-    def open_site(self, url=None):
-        if url:
-            self.driver.get(url)
-        else:
-            self.driver.get(self.url)
-        self.pause()
+
 
     def choose_city(self):
         city_items = self.wait.until(
@@ -212,7 +213,7 @@ class YCParser:
         self.driver.quit()
         
     def pause(self):
-        time.sleep(self.st)
+        time.sleep(self.freeze)
 
     def go_back(self, n):
         for _ in range(n):
