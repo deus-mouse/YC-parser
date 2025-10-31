@@ -17,7 +17,7 @@ class Handler:
         self.wait = WebDriverWait(self.driver, 5)
         self.parser = None
         self.today = datetime.now()
-        self.depth_days = depth_days
+        self.depth_days = depth
 
     def open_site(self, url=None):
         if url:
