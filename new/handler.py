@@ -9,22 +9,21 @@ from datetime import datetime
 
 
 class Handler:
-    def __init__(self, freeze, url, depth):
-        self.freeze = freeze
+    def __init__(self, url, depth, freeze):
         self.url = url
-        self.city = None
-        self.driver = webdriver.Chrome()
-        self.wait = WebDriverWait(self.driver, 5)
+        self.depth = depth
+        self.freeze = freeze
+
         self.parser = None
         self.today = datetime.now()
-        self.depth_days = depth
 
-    def open_site(self, url=None):
-        if url:
-            self.driver.get(url)
-        else:
-            self.driver.get(self.url)
-        self.pause()
+    def run(self):
+        self.parser = YCParser()
+        self.parser(url=self.url, depth=self.depth, freeze=self.freeze)
+
+        self.parser.open_site()
+
+
 
     def find_city(self, city):
         try:
