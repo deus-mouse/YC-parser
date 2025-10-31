@@ -28,63 +28,8 @@ class YCParser:
         self.freeze = freeze
         return self
 
-    def open_site(self):
+    def open_page(self):
         self.driver.get(self.url)
-        self.pause()
-
-    def convert_to_minutes(self, time_text):
-        # Замена неразрывных пробелов, обрезка лишних пробелов
-        time_text = time_text.replace('\xa0', ' ').strip()
-        # Регулярное выражение с именованными группами для часов и минут
-        pattern = r'^(?:(?P<hours>\d+)\s*ч)?\s*(?:(?P<minutes>\d+)\s*мин)?$'
-        match = re.match(pattern, time_text)
-        if match:
-            hours = int(match.group('hours')) if match.group('hours') else 0
-            minutes = int(match.group('minutes')) if match.group('minutes') else 0
-            total = hours * 60 + minutes
-            if total > 0:
-                return total
-        return float('inf')
-
-
-
-    def choose_city(self):
-        city_items = self.wait.until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.city-item")))  
-        for item in city_items:  
-            try:  
-                title_el = item.find_element(By.CSS_SELECTOR, '[data-locator="city_title"]')  
-                if title_el.text.strip() == self.city:  
-                    item.click()  
-                    self.pause()  
-                    return  
-            except Exception:  
-                continue  
-        print(f"Город {self.city} не найден.")  
-        self.pause()  
-
-    def find_branches(self):
-        branch_buttons = self.driver.find_elements(By.CLASS_NAME, "title")
-        self.pause()
-
-        if branch_buttons:
-            return branch_buttons
-        return []
-
-    def choose_branch(self, branch):
-        branch_name = branch.text.strip()
-        self.branches[branch_name] = 0
-        branch.click()
-        self.pause()
-
-    def choose_individual_services(self):
-        individual_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Индивидуальные услуги')]")))
-        individual_btn.click()  # клик по "Индивидуальные услуги"
-        self.pause()
-
-    def choose_specialist(self):
-        specialist_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать специалиста')]")))
-        specialist_btn.click()  # клик по "Выбрать специалиста"
         self.pause()
 
     def find_masters(self):
@@ -219,3 +164,17 @@ class YCParser:
         for _ in range(n):
             self.driver.back()
             self.pause()
+
+    def convert_to_minutes(self, time_text):
+        # Замена неразрывных пробелов, обрезка лишних пробелов
+        time_text = time_text.replace('\xa0', ' ').strip()
+        # Регулярное выражение с именованными группами для часов и минут
+        pattern = r'^(?:(?P<hours>\d+)\s*ч)?\s*(?:(?P<minutes>\d+)\s*мин)?$'
+        match = re.match(pattern, time_text)
+        if match:
+            hours = int(match.group('hours')) if match.group('hours') else 0
+            minutes = int(match.group('minutes')) if match.group('minutes') else 0
+            total = hours * 60 + minutes
+            if total > 0:
+                return total
+        return float('inf')
