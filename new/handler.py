@@ -23,10 +23,9 @@ class Handler:
 
         self.parser.open_page()  # страничка с мастерами
 
-        self.find_masters()
+        # self.find_masters()
 
+        self.parser.find_masters()
 
     def find_masters(self):
         master_buttons = self.parser.find_masters()
-        m_count = len(master_buttons)
-        print("Видим мастеров:", m_count-1)
