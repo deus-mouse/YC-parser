@@ -8,7 +8,7 @@ depth_days = 30  # глубина сканирования
 
 
 def main():
-    handler = Handler(freeze=1, url=URL_masters_Zvezdinka, depth=depth_days)
+    handler = Handler(url=URL_masters_Zvezdinka, depth=depth_days, freeze=2)
     handler.run()
 
 
