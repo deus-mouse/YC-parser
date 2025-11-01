@@ -33,6 +33,10 @@ class YCParser:
         self.pause()
 
     def find_masters(self):
+        master_button_prev = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'name')]")))
+        print(f'{master_button_prev = }')
+        print(f'{len(master_button_prev) = }')
+
         print(f'{self.driver.title = }')
         master_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
         self.pause()
