@@ -9,13 +9,16 @@ from collections import defaultdict
 from colorama import init, Fore, Style
 import calendar
 
+from error_handler import SeleniumErrorHandler
+
 init(autoreset=True)  # для очистки консоли
 
 
 class YCParser:
     def __init__(self):
         self.driver = webdriver.Chrome()
-        self.wait = WebDriverWait(self.driver, 5)
+        self.wait = WebDriverWait(self.driver, 15)  # больше таймаут — из-за гео страница может грузиться дольше
+        self.error_handler = SeleniumErrorHandler(self.driver, prefix="debug")
 
         self.url = None
         self.depth = None
@@ -33,9 +36,10 @@ class YCParser:
         self.pause()
 
     def find_masters(self):
-        master_button_prev = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'name')]")))
-        print(f'{master_button_prev = }')
-        print(f'{len(master_button_prev) = }')
+        try:
+            self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, "name")))
+        except Exception as e:
+            self.error_handler.handle(e, context="find_masters")
 
         print(f'{self.driver.title = }')
         master_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
