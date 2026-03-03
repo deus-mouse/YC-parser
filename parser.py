@@ -42,18 +42,16 @@ class YCParser:
         except Exception as e:
             self.error_handler.handle(e, context="find_masters")
 
-        master_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
+        all_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
         self.pause()
-        for master in master_buttons:
-            print(f'{master.text.strip()=}')
-            if master.text.strip() == "Любой специалист":
-                print("Любой специалист найден")
-
+        master_buttons = [
+            el for el in all_buttons
+            if el.text.strip() != "Любой специалист"
+        ]
 
         if master_buttons:
             m_count = len(master_buttons)
-            print("Видим мастеров:", m_count - 1)
-
+            print("Видим мастеров:", m_count)
             return master_buttons, m_count
         return [], 0
 
