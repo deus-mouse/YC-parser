@@ -55,5 +55,13 @@ class YCParser:
             return master_buttons, m_count
         return [], 0
 
+    def choose_service_page(self):
+        """Клик по кнопке «Выбрать услугу» (span.y-core-button__text с текстом «Выбрать услугу»)."""
+        service_btn = self.wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//span[contains(@class, 'y-core-button__text') and contains(., 'Выбрать услугу')]"))
+        )
+        service_btn.click()
+        self.pause()
+
     def pause(self):
         time.sleep(self.freeze)

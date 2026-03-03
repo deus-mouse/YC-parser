@@ -24,3 +24,9 @@ class Handler:
         self.parser.open_page()  # страничка с мастерами
 
         master_buttons, m_count = self.parser.find_masters()
+
+        for master_el in master_buttons:
+            master_el.click()
+            self.parser.pause()
+            self.parser.choose_service_page()
+
