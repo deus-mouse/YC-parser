@@ -29,4 +29,9 @@ class Handler:
             master_el.click()
             self.parser.pause()
             self.parser.choose_service_page()
+            min_time = self.parser.select_min_service()
+            print(f'{min_time = }')
+
+
+            break  ## todo remove
 
