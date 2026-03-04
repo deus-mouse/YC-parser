@@ -55,12 +55,10 @@ class YCParser:
             self.error_handler.handle(e, context="find_masters")
 
         all_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
-        self.pause()
         master_buttons = [
             el for el in all_buttons
             if el.text.strip() != "Любой специалист"
         ]
-
 
         if master_buttons:
             m_count = len(master_buttons)
@@ -76,6 +74,24 @@ class YCParser:
         )
         service_btn.click()
         self.pause()
+
+    def select_min_service(self):
+        elements = self.driver.find_elements(By.CSS_SELECTOR, 'span[data-locator="service_seance_length"]')
+        print("Видим услуг:", len(elements))
+        min_time = float('inf')
+        min_element = None
+        for el in elements:
+            total_minutes = self.convert_to_minutes(el.text)
+            if total_minutes < min_time:
+                min_time = total_minutes
+                min_element = el
+        if min_element:
+            print("Минимальное время:", min_time, "минут. Текст:", min_element.text)
+            min_element.click()  # выбираем услугу с минимальной длительностью
+        else:
+            print("Элементы не найдены.")
+        self.pause()
+        return min_time if min_time != float('inf') else 0
 
     def pause(self):
         time.sleep(self.freeze)
