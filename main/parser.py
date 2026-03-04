@@ -15,6 +15,17 @@ from error_handler import SeleniumErrorHandler
 init(autoreset=True)  # для очистки консоли
 
 
+def timed_seconds(func):
+    """Декоратор: замеряет время выполнения функции в секундах и выводит в консоль."""
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+        print(f"[timed] {func.__name__}: {elapsed:.2f} сек")
+        return result
+    return wrapper
+
+
 class YCParser:
     def __init__(self):
         self.driver = webdriver.Chrome()
@@ -70,14 +81,3 @@ class YCParser:
     def pause(self):
         time.sleep(self.freeze)
 
-
-
-def timed_seconds(func):
-    """Декоратор: замеряет время выполнения функции в секундах и выводит в консоль."""
-    def wrapper(*args, **kwargs):
-        start = time.perf_counter()
-        result = func(*args, **kwargs)
-        elapsed = time.perf_counter() - start
-        print(f"[timed] {func.__name__}: {elapsed:.2f} сек")
-        return result
-    return wrapper
