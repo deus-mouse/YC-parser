@@ -54,7 +54,6 @@ class YCParser:
         except Exception as e:
             self.error_handler.handle(e, context="find_masters")
 
-
         all_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
         self.pause()
         master_buttons = [
@@ -71,9 +70,9 @@ class YCParser:
 
     @timed_seconds
     def choose_service_page(self):
-        """Клик по кнопке «Выбрать услугу» (span.y-core-button__text с текстом «Выбрать услугу»)."""
+        """Клик по плавающей кнопке «Выбрать услугу» (ybutton с data-locator='continue_btn')."""
         service_btn = self.wait.until(
-            EC.element_to_be_clickable((By.XPATH, "//span[contains(@class, 'y-core-button__text') and contains(., 'Выбрать услугу')]"))
+            EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="continue_btn"]'))
         )
         service_btn.click()
         self.pause()
