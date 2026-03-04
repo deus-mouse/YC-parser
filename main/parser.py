@@ -36,11 +36,13 @@ class YCParser:
         self.driver.get(self.url)
         self.pause()
 
+    @timed_seconds
     def find_masters(self) -> tuple[list[WebElement], int]:
         try:
             self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, "name")))
         except Exception as e:
             self.error_handler.handle(e, context="find_masters")
+
 
         all_buttons = self.driver.find_elements(By.CLASS_NAME, "name")
         self.pause()
@@ -49,12 +51,14 @@ class YCParser:
             if el.text.strip() != "Любой специалист"
         ]
 
+
         if master_buttons:
             m_count = len(master_buttons)
             print("Видим мастеров:", m_count)
             return master_buttons, m_count
         return [], 0
 
+    @timed_seconds
     def choose_service_page(self):
         """Клик по кнопке «Выбрать услугу» (span.y-core-button__text с текстом «Выбрать услугу»)."""
         service_btn = self.wait.until(
@@ -65,3 +69,15 @@ class YCParser:
 
     def pause(self):
         time.sleep(self.freeze)
+
+
+
+def timed_seconds(func):
+    """Декоратор: замеряет время выполнения функции в секундах и выводит в консоль."""
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+        print(f"[timed] {func.__name__}: {elapsed:.2f} сек")
+        return result
+    return wrapper
