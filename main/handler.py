@@ -30,11 +30,13 @@ class Handler:
             pause(0.5)
             self.parser.continue_btn()
             self.parser.expand_all_collapse_items()
-            # min_time = self.parser.select_min_service()
-            # print(f'{min_time = }')
+            min_time = self.parser.select_min_service()
+            print(f'{min_time = }')
+            self.parser.continue_btn()
+
             # self.parser.choose_date_and_time()
 
 
-
+            pause(5)
             break  ## todo remove
 
