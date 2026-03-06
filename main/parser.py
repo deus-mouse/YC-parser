@@ -11,7 +11,7 @@ from colorama import init, Fore, Style
 import calendar
 
 from error_handler import SeleniumErrorHandler
-from helper import convert_to_minutes
+from helper import convert_to_minutes, pause
 
 init(autoreset=True)  # для очистки консоли
 
@@ -35,19 +35,17 @@ class YCParser:
 
         self.url = None
         self.depth = None
-        self.freeze = None
         self.masters = defaultdict(int)
 
-    def __call__(self, *, url, depth, freeze):
+    def __call__(self, *, url, depth):
         self.url = url
         self.depth = depth
-        self.freeze = freeze
         return self
 
 
     def open_page(self):
         self.driver.get(self.url)
-        self.pause()
+        pause()
 
     @timed_seconds
     def find_masters(self) -> tuple[list[WebElement], int]:
@@ -69,13 +67,50 @@ class YCParser:
         return [], 0
 
     @timed_seconds
-    def choose_service_page(self):
+    def continue_btn(self):
         """Клик по плавающей кнопке «Выбрать услугу» (ybutton с data-locator='continue_btn')."""
         service_btn = self.wait.until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="continue_btn"]'))
         )
         service_btn.click()
-        self.pause()
+        pause()
+
+    def expand_all_collapse_items(self):
+        """Находит все выпадающие блоки (в т.ч. внутри Shadow DOM) и раскрывает их."""
+        # Элементы могут быть внутри shadow root — ищем и кликаем через JS
+        script = """
+        function collectActivators(root, out) {
+            try {
+                root.querySelectorAll('div.y-core-collapse-item__activator, div[data-activator]').forEach(function(el) { out.push(el); });
+                root.querySelectorAll('*').forEach(function(el) {
+                    if (el.shadowRoot) collectActivators(el.shadowRoot, out);
+                });
+            } catch (e) {}
+            return out;
+        }
+        var activators = collectActivators(document, []);
+        var clicked = 0;
+        activators.forEach(function(el) {
+            try {
+                if (el.hasAttribute('data-collapse-clicked')) return;
+                if (el.offsetParent === null) return;
+                el.setAttribute('data-collapse-clicked', '1');
+                el.scrollIntoView({block: 'center'});
+                el.click();
+                clicked++;
+            } catch (e) {}
+        });
+        return clicked;
+        """
+        total_clicked = 0
+        max_rounds = 20
+        for _ in range(max_rounds):
+            round_clicked = self.driver.execute_script(script)
+            total_clicked += round_clicked
+            if round_clicked == 0:
+                break
+            pause()
+        print("Раскрыто выпадающих блоков:", total_clicked)
 
     def select_min_service(self):
         elements = self.driver.find_elements(By.CSS_SELECTOR, 'span[data-locator="service_seance_length"]')
@@ -92,8 +127,11 @@ class YCParser:
             min_element.click()  # выбираем услугу с минимальной длительностью
         else:
             print("Элементы не найдены.")
-        self.pause()
+        pause()
         return min_time if min_time != float('inf') else 0
 
-    def pause(self):
-        time.sleep(self.freeze)
+    def choose_date_and_time(self):
+        choose_date_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать дату и время')]")))
+        choose_date_btn.click()  # клик по "Выбрать дату и время"
+        pause()
+

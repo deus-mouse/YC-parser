@@ -16,5 +16,5 @@ def convert_to_minutes(time_text):
     return float('inf')
 
 
-def pause(time = 1):
-    time.sleep(1)
+def pause(amount = 1):
+    time.sleep(amount)
