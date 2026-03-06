@@ -1,4 +1,5 @@
 import re
+import time
 
 def convert_to_minutes(time_text):
     # Замена неразрывных пробелов, обрезка лишних пробелов
@@ -13,3 +14,7 @@ def convert_to_minutes(time_text):
         if total > 0:
             return total
     return float('inf')
+
+
+def pause(time = 1):
+    time.sleep(1)
