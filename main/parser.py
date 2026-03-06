@@ -11,6 +11,7 @@ from colorama import init, Fore, Style
 import calendar
 
 from error_handler import SeleniumErrorHandler
+from helper import convert_to_minutes
 
 init(autoreset=True)  # для очистки консоли
 
@@ -42,6 +43,7 @@ class YCParser:
         self.depth = depth
         self.freeze = freeze
         return self
+
 
     def open_page(self):
         self.driver.get(self.url)
@@ -81,7 +83,7 @@ class YCParser:
         min_time = float('inf')
         min_element = None
         for el in elements:
-            total_minutes = self.convert_to_minutes(el.text)
+            total_minutes = convert_to_minutes(el.text)
             if total_minutes < min_time:
                 min_time = total_minutes
                 min_element = el
@@ -95,4 +97,3 @@ class YCParser:
 
     def pause(self):
         time.sleep(self.freeze)
-
