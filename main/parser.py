@@ -130,8 +130,68 @@ class YCParser:
         pause()
         return min_time if min_time != float('inf') else 0
 
-    def choose_date_and_time(self):
-        choose_date_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Выбрать дату и время')]")))
-        choose_date_btn.click()  # клик по "Выбрать дату и время"
-        pause()
+    def check_working_days(self, today, depth: int, master_name: str, min_time: int):
+        current_date = today
+        depth_date = today + timedelta(days=depth)
 
+        first_launch = True
+        while current_date < depth_date:  # пока дата не превысила текущую
+            print('-> WHILE')
+            elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.calendar-day[data-locator="working_day"], div.calendar-day[data-locator="non_working_day"]')
+
+            print("Найдено дней:", len(elements))
+            current_date, is_end = self.click_working_days(elements, current_date, depth_date, master_name, min_time, first_launch)
+            first_launch = False
+
+            print(f'{current_date = }')
+            print(f'{depth_date = }')
+            print(f'{current_date < depth_date = }')
+
+            arrow_right = self.wait.until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-locator="arrow_right"]'))
+            )
+            arrow_right.click()
+
+            self.pause()
+
+    def click_working_days(self, elements, current_date, depth_date, master_name, min_time, first_launch) -> [datetime, bool]:
+        cursor_date = datetime.strptime(elements[0].get_attribute("data-locator-date"), '%Y-%m-%d')
+        last_day = calendar.monthrange(current_date.year, current_date.month)[1]
+
+        for day in elements:  # todo в цикле если нерабочий, то continue
+            try:
+                cursor_date = datetime.strptime(day.get_attribute("data-locator-date"), '%Y-%m-%d')
+                print(f'++ day = {cursor_date}')
+
+                if cursor_date.date() > depth_date.date():  # достигли глубины сканирования
+                    print(f'{cursor_date >= depth_date = }, {Fore.GREEN}достигли глубины сканирования{Style.RESET_ALL}')
+                    return cursor_date, True
+
+                if cursor_date.date() < datetime.now().date():
+                    print(f'{cursor_date = } {Fore.RED}в прошлом{Style.RESET_ALL}')
+                    continue
+
+                if cursor_date.date() < current_date.date():  # уже сканили
+                    print(f'{current_date <= cursor_date = }, {Fore.YELLOW}уже сканили{Style.RESET_ALL}')
+                    continue
+
+                if day.get_attribute("data-locator") == "non_working_day":
+                    print(f'{cursor_date = } {Fore.BLUE}нерабочий{Style.RESET_ALL}')
+                    continue
+
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", day)
+                locator = (By.CSS_SELECTOR, f'[data-locator="working_day"][data-locator-date="{day.get_attribute("data-locator-date")}"]')
+                day_elem = self.wait.until(EC.element_to_be_clickable(locator))
+                day_elem.click()  # клик по рабочему дню
+
+                self.pause()
+                self.count_timeslots(master_name, min_time)
+
+                if cursor_date.day == last_day:
+                    print(f'{cursor_date = } {Fore.YELLOW}достигли последнего дня{Style.RESET_ALL}')
+                    return cursor_date, False
+
+            except Exception as e:
+                print("Ошибка при клике по элементу:", e)
+
+        return cursor_date, False

@@ -26,6 +26,8 @@ class Handler:
         master_buttons, m_count = self.parser.find_masters()
 
         for master_el in master_buttons:
+            master_name = master_el.text.strip()
+
             master_el.click()
             pause(0.5)
             self.parser.continue_btn()
@@ -34,7 +36,7 @@ class Handler:
             print(f'{min_time = }')
             self.parser.continue_btn()
 
-            # self.parser.choose_date_and_time()
+            self.parser.check_working_days(self.today, self.depth_days, master_name, min_time)
 
 
             pause(5)
