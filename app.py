@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -52,6 +53,23 @@ def serialize_master(master: MasterAvailability) -> dict:
     }
 
 
+def run_scan_sync(payload: ScanRequest) -> ScanResponse:
+    with YClientsParser(
+        masters_url=payload.url,
+        days_ahead=payload.days,
+        headless=True,
+    ) as parser:
+        results = parser.parse()
+
+    items = [serialize_master(item) for item in results]
+    return ScanResponse(
+        url=payload.url,
+        days=payload.days,
+        total_masters=len(items),
+        items=items,
+    )
+
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request) -> HTMLResponse:
     settings = settings_store.load()
@@ -88,24 +106,11 @@ def update_settings(payload: WebSettings) -> dict:
 
 
 @app.post("/api/scan", response_model=ScanResponse)
-def scan(payload: ScanRequest) -> ScanResponse:
+async def scan(payload: ScanRequest) -> ScanResponse:
     try:
-        with YClientsParser(
-            masters_url=payload.url,
-            days_ahead=payload.days,
-            headless=True,
-        ) as parser:
-            results = parser.parse()
+        return await asyncio.to_thread(run_scan_sync, payload)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
-
-    items = [serialize_master(item) for item in results]
-    return ScanResponse(
-        url=payload.url,
-        days=payload.days,
-        total_masters=len(items),
-        items=items,
-    )
 
 
 @app.get("/health")
