@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Parser</h1>
+          <p class="subtitle">Просмотр свободного времени мастеров.</p>
+        </div>
+        <a class="admin-link" href="/admin">Админка</a>
+      </section>
+
+      <section class="card">
+        <form id="scan-form" class="form-grid">
+          <label class="field">
+            <span>Ссылка на страницу с мастерами</span>
+            <input id="url" name="url" type="url" required value="">
+          </label>
+          <label class="field small">
+            <span>Глубина, дней</span>
+            <input id="days" name="days" type="number" min="1" max="180" value="{{ defaults.default_days }}">
+          </label>
+          <button id="submit-button" class="button" type="submit">Запустить</button>
+        </form>
+        <p id="status" class="status">Готов к запуску.</p>
+      </section>
+
+      <section id="results-card" class="card hidden">
+        <div class="section-head">
+          <h2>Результаты</h2>
+          <p id="summary" class="summary"></p>
+        </div>
+        <div class="table-wrap">
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th>Мастер</th>
+                <th>Мин. услуга</th>
+                <th>Слоты</th>
+                <th>Свободно, мин</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      window.APP_DEFAULTS = {{ defaults | tojson }};
+    </script>
+    <script src="/static/app.js"></script>
+  </body>
+  </html>

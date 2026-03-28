@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Админка</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Настройки интерфейса</h1>
+          <p class="subtitle">Минимальная админка для дефолтных параметров сервиса.</p>
+        </div>
+        <a class="admin-link" href="/">Интерфейс</a>
+      </section>
+
+      <section class="card">
+        <form id="settings-form" class="form-grid">
+          <label class="field">
+          <label class="field small">
+            <span>Дней по умолчанию</span>
+            <input id="default_days" name="default_days" type="number" min="1" max="180" value="{{ defaults.default_days }}">
+          </label>
+          <button class="button" type="submit">Сохранить настройки</button>
+        </form>
+        <p id="settings-status" class="status">Изменения еще не сохранены.</p>
+      </section>
+    </main>
+
+    <script>
+      window.APP_DEFAULTS = {{ defaults | tojson }};
+    </script>
+    <script src="/static/admin.js"></script>
+  </body>
+  </html>
