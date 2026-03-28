@@ -56,9 +56,9 @@ def serialize_master(master: MasterAvailability) -> dict:
 def index(request: Request) -> HTMLResponse:
     settings = settings_store.load()
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
-            "request": request,
             "defaults": settings.model_dump(),
         },
     )
@@ -68,9 +68,9 @@ def index(request: Request) -> HTMLResponse:
 def admin(request: Request) -> HTMLResponse:
     settings = settings_store.load()
     return templates.TemplateResponse(
+        request,
         "admin.html",
         {
-            "request": request,
             "defaults": settings.model_dump(),
         },
     )
