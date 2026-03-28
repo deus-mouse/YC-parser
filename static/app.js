@@ -27,12 +27,14 @@ function renderResults(items) {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  console.log("submit:start");
 
   const formData = new FormData(form);
   const payload = {
     url: String(formData.get("url") || "").trim(),
     days: Number(formData.get("days") || 30),
   };
+  console.log("submit:payload", payload);
 
   submitButton.disabled = true;
   resultsCard.classList.add("hidden");
@@ -44,8 +46,10 @@ form.addEventListener("submit", async (event) => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
+    console.log("submit:response", response.status);
 
     const data = await response.json();
+    console.log("submit:data", data);
     if (!response.ok) {
       throw new Error(data.detail || "Ошибка при запуске парсинга.");
     }
@@ -59,6 +63,7 @@ form.addEventListener("submit", async (event) => {
     resultsCard.classList.remove("hidden");
     setStatus("Парсинг завершен.");
   } catch (error) {
+    console.error("submit:error", error);
     setStatus(error.message || "Не удалось выполнить парсинг.", true);
   } finally {
     submitButton.disabled = false;
