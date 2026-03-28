@@ -119,7 +119,10 @@ class YClientsParser:
 
     def start(self) -> None:
         self._playwright = sync_playwright().start()
-        self._browser = self._playwright.chromium.launch(headless=self.headless)
+        self._browser = self._playwright.chromium.launch(
+            headless=self.headless,
+            args=["--no-sandbox", "--disable-dev-shm-usage"],
+        )
         self._context = self._browser.new_context()
         self.page = self._context.new_page()
         self.page.set_default_timeout(self.timeout_ms)
