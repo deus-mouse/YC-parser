@@ -69,6 +69,12 @@ class MasterAvailability:
     scanned_days: list[DayAvailability] = field(default_factory=list)
 
 
+@dataclass
+class StaffInfo:
+    id: int
+    name: str
+
+
 def parse_duration_to_minutes(raw_text: str) -> int:
     text = raw_text.replace("\xa0", " ").strip()
     match = re.match(r"^(?:(\d+)\s*ч)?\s*(?:(\d+)\s*мин)?$", text)
@@ -153,16 +159,18 @@ class YClientsParser:
 
     def parse(self, master_limit: Optional[int] = None) -> list[MasterAvailability]:
         self._goto_masters_page()
-        master_names = self._collect_master_names()
+        self._wait_for_availability_headers()
+        staff_members = self._fetch_staff_catalog()
         if master_limit is not None:
-            master_names = master_names[:master_limit]
+            staff_members = staff_members[:master_limit]
+        service_titles = self._fetch_service_catalog()
 
         results: list[MasterAvailability] = []
-        total = len(master_names)
+        total = len(staff_members)
 
-        for index, master_name in enumerate(master_names, start=1):
-            print(f"[{index}/{total}] {master_name}", file=sys.stderr)
-            result = self._analyze_master(master_name)
+        for index, staff in enumerate(staff_members, start=1):
+            print(f"[{index}/{total}] {staff.name}", file=sys.stderr)
+            result = self._analyze_master_api(staff, service_titles)
             results.append(result)
             print(
                 f"    shortest={result.shortest_service_duration_min} мин, "
@@ -197,6 +205,14 @@ class YClientsParser:
         raise RuntimeError(
             f"Не удалось открыть страницу мастеров после 3 попыток: {self.masters_url}"
         ) from last_error
+
+    def _wait_for_availability_headers(self) -> None:
+        deadline = time.time() + (self.timeout_ms / 1000)
+        while time.time() < deadline:
+            if self._availability_headers.get("authorization"):
+                return
+            self._pause(0.2)
+        raise RuntimeError("Не удалось перехватить authorization headers для API YCLIENTS.")
 
     def _pause(self, seconds: Optional[float] = None) -> None:
         time.sleep(self.pause_seconds if seconds is None else seconds)
@@ -343,13 +359,37 @@ class YClientsParser:
         parsed = urlparse(self.masters_url)
         return f"{parsed.scheme}://platform.yclients.com{AVAILABILITY_API_PATH}"
 
-    def _post_availability(self, endpoint: str, payload: dict) -> dict:
-        assert self._context is not None
+    def _api_headers(self) -> dict[str, str]:
         headers = dict(self._availability_headers)
-        headers["content-type"] = "application/json"
         if "referer" not in headers:
             parsed = urlparse(self.masters_url)
             headers["referer"] = f"{parsed.scheme}://{parsed.netloc}/"
+        return headers
+
+    def _get_availability(self, endpoint: str) -> object:
+        assert self._context is not None
+        last_error: Optional[Exception] = None
+        for attempt in range(8):
+            try:
+                response = self._context.request.get(
+                    f"{self._api_base_url()}/{endpoint}",
+                    headers=self._api_headers(),
+                    timeout=self.timeout_ms,
+                )
+                if not response.ok:
+                    raise RuntimeError(
+                        f"API {endpoint} вернул статус {response.status}: {response.text()[:500]}"
+                    )
+                return response.json()
+            except (PlaywrightError, RuntimeError) as exc:
+                last_error = exc
+                self._pause(min(2.0 + attempt * 1.5, 12.0))
+        raise RuntimeError(f"API {endpoint} не ответил после 8 попыток") from last_error
+
+    def _post_availability(self, endpoint: str, payload: dict) -> dict:
+        assert self._context is not None
+        headers = self._api_headers()
+        headers["content-type"] = "application/json"
         last_error: Optional[Exception] = None
         for attempt in range(8):
             try:
@@ -368,6 +408,92 @@ class YClientsParser:
                 last_error = exc
                 self._pause(min(2.0 + attempt * 1.5, 12.0))
         raise RuntimeError(f"API {endpoint} не ответил после 8 попыток") from last_error
+
+    def _fetch_staff_catalog(self) -> list[StaffInfo]:
+        data = self._get_availability(f"book_staff/{self.location_id}?without_seances=1")
+        if not isinstance(data, list):
+            raise RuntimeError("book_staff вернул неожиданный формат ответа.")
+
+        result: list[StaffInfo] = []
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            if item.get("hidden"):
+                continue
+            if not item.get("bookable", True):
+                continue
+            staff_id = item.get("id")
+            name = (item.get("name") or "").strip()
+            if not isinstance(staff_id, int) or not name or name == "Любой специалист":
+                continue
+            result.append(StaffInfo(id=staff_id, name=name))
+        if not result:
+            raise RuntimeError("Не удалось получить список мастеров через book_staff.")
+        return result
+
+    def _fetch_service_catalog(self) -> dict[int, str]:
+        data = self._get_availability(f"book_services/{self.location_id}?without_seances=1")
+        if not isinstance(data, dict):
+            raise RuntimeError("book_services вернул неожиданный формат ответа.")
+
+        services = data.get("services", [])
+        result: dict[int, str] = {}
+        for item in services:
+            if not isinstance(item, dict):
+                continue
+            service_id = item.get("id")
+            title = (item.get("title") or "").strip()
+            if isinstance(service_id, int) and title:
+                result[service_id] = title
+        if not result:
+            raise RuntimeError("Не удалось получить каталог услуг через book_services.")
+        return result
+
+    def _fetch_shortest_service_api(
+        self,
+        staff_id: int,
+        service_titles: dict[int, str],
+    ) -> tuple[str, int, int]:
+        payload = {
+            "context": {"location_id": self.location_id},
+            "filter": {
+                "records": [
+                    {
+                        "staff_id": staff_id,
+                        "attendance_service_items": [],
+                    }
+                ]
+            },
+        }
+        data = self._post_availability("search-services", payload)
+
+        shortest_service_id: Optional[int] = None
+        shortest_duration_seconds: Optional[int] = None
+
+        for item in data.get("data", []):
+            attrs = item.get("attributes", {})
+            if not attrs.get("is_bookable"):
+                continue
+            raw_id = item.get("id")
+            if raw_id is None:
+                continue
+            try:
+                service_id = int(raw_id)
+            except (TypeError, ValueError):
+                continue
+            duration_seconds = attrs.get("duration")
+            if not isinstance(duration_seconds, int) or duration_seconds <= 0:
+                continue
+            if shortest_duration_seconds is None or duration_seconds < shortest_duration_seconds:
+                shortest_duration_seconds = duration_seconds
+                shortest_service_id = service_id
+
+        if shortest_service_id is None or shortest_duration_seconds is None:
+            raise RuntimeError(f"Не удалось определить кратчайшую услугу для staff_id={staff_id}.")
+
+        duration_minutes = max(1, shortest_duration_seconds // 60)
+        service_name = service_titles.get(shortest_service_id, f"service_{shortest_service_id}")
+        return service_name, duration_minutes, shortest_service_id
 
     def _fetch_bookable_dates(
         self,
@@ -576,6 +702,36 @@ class YClientsParser:
             scanned_days=scanned_days,
         )
 
+    def _analyze_master_api(
+        self,
+        staff: StaffInfo,
+        service_titles: dict[int, str],
+    ) -> MasterAvailability:
+        shortest_service_name, shortest_service_duration_min, shortest_service_id = (
+            self._fetch_shortest_service_api(
+                staff_id=staff.id,
+                service_titles=service_titles,
+            )
+        )
+        scanned_days = self._scan_calendar_via_api(
+            staff_id=staff.id,
+            service_id=shortest_service_id,
+            service_duration_min=shortest_service_duration_min,
+        )
+        total_slots = sum(day.slots for day in scanned_days)
+        total_free_minutes = sum(day.free_minutes for day in scanned_days)
+        days_with_slots = sum(1 for day in scanned_days if day.slots > 0)
+
+        return MasterAvailability(
+            name=staff.name,
+            shortest_service_name=shortest_service_name,
+            shortest_service_duration_min=shortest_service_duration_min,
+            total_slots=total_slots,
+            total_free_minutes=total_free_minutes,
+            days_with_slots=days_with_slots,
+            scanned_days=scanned_days,
+        )
+
 
 def results_to_json(results: Iterable[MasterAvailability]) -> str:
     payload = []
@@ -611,4 +767,3 @@ def print_table(results: list[MasterAvailability]) -> None:
             f"{item.total_slots:>{slots_width}}  "
             f"{item.total_free_minutes:>{free_width}}"
         )
-
