@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -18,6 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent
 app = FastAPI(title="YCLIENTS Parser")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 settings_store = SettingsStore(BASE_DIR / "data" / "settings.json")
+logger = logging.getLogger("yc_parser")
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
@@ -54,14 +56,18 @@ def serialize_master(master: MasterAvailability) -> dict:
 
 
 def run_scan_sync(payload: ScanRequest) -> ScanResponse:
+    logger.info("scan_sync:start url=%s days=%s", payload.url, payload.days)
     with YClientsParser(
         masters_url=payload.url,
         days_ahead=payload.days,
         headless=True,
     ) as parser:
+        logger.info("scan_sync:parser_started")
         results = parser.parse()
+        logger.info("scan_sync:parse_finished masters=%s", len(results))
 
     items = [serialize_master(item) for item in results]
+    logger.info("scan_sync:serialized items=%s", len(items))
     return ScanResponse(
         url=payload.url,
         days=payload.days,
@@ -107,9 +113,13 @@ def update_settings(payload: WebSettings) -> dict:
 
 @app.post("/api/scan", response_model=ScanResponse)
 async def scan(payload: ScanRequest) -> ScanResponse:
+    logger.info("scan_request:start url=%s days=%s", payload.url, payload.days)
     try:
-        return await asyncio.to_thread(run_scan_sync, payload)
+        response = await asyncio.to_thread(run_scan_sync, payload)
+        logger.info("scan_request:success total_masters=%s", response.total_masters)
+        return response
     except Exception as exc:
+        logger.exception("scan_request:error")
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
