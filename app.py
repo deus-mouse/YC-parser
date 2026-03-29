@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-import asyncio
+import json
 import logging
 from pathlib import Path
+import subprocess
+import sys
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
@@ -11,7 +13,6 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from starlette.requests import Request
 
-from parser import MasterAvailability, YClientsParser
 from settings_store import SettingsStore, WebSettings
 
 
@@ -36,38 +37,41 @@ class ScanResponse(BaseModel):
     items: list[dict]
 
 
-def serialize_master(master: MasterAvailability) -> dict:
-    return {
-        "name": master.name,
-        "shortest_service_name": master.shortest_service_name,
-        "shortest_service_duration_min": master.shortest_service_duration_min,
-        "total_slots": master.total_slots,
-        "total_free_minutes": master.total_free_minutes,
-        "days_with_slots": master.days_with_slots,
-        "scanned_days": [
-            {
-                "date": day.date,
-                "slots": day.slots,
-                "free_minutes": day.free_minutes,
-            }
-            for day in master.scanned_days
-        ],
-    }
-
-
 def run_scan_sync(payload: ScanRequest) -> ScanResponse:
+    command = [
+        sys.executable,
+        str(BASE_DIR / "handler.py"),
+        payload.url,
+        "--days",
+        str(payload.days),
+        "--json-only",
+    ]
     logger.info("scan_sync:start url=%s days=%s", payload.url, payload.days)
-    with YClientsParser(
-        masters_url=payload.url,
-        days_ahead=payload.days,
-        headless=True,
-    ) as parser:
-        logger.info("scan_sync:parser_started")
-        results = parser.parse()
-        logger.info("scan_sync:parse_finished masters=%s", len(results))
-
-    items = [serialize_master(item) for item in results]
-    logger.info("scan_sync:serialized items=%s", len(items))
+    logger.info("scan_sync:command=%s", command)
+    completed = subprocess.run(
+        command,
+        cwd=str(BASE_DIR),
+        capture_output=True,
+        text=True,
+    )
+    if completed.stderr:
+        logger.info("scan_sync:stderr\n%s", completed.stderr.strip())
+    if completed.returncode != 0:
+        stdout_tail = completed.stdout.strip()[-1000:]
+        stderr_tail = completed.stderr.strip()[-2000:]
+        raise RuntimeError(
+            "Парсер завершился с ошибкой. "
+            f"code={completed.returncode}. stderr={stderr_tail or '<empty>'}. "
+            f"stdout={stdout_tail or '<empty>'}"
+        )
+    try:
+        items = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            "Не удалось распарсить JSON-ответ парсера. "
+            f"stdout={completed.stdout[-2000:]}"
+        ) from exc
+    logger.info("scan_sync:finished items=%s", len(items))
     return ScanResponse(
         url=payload.url,
         days=payload.days,
@@ -112,10 +116,10 @@ def update_settings(payload: WebSettings) -> dict:
 
 
 @app.post("/api/scan", response_model=ScanResponse)
-async def scan(payload: ScanRequest) -> ScanResponse:
+def scan(payload: ScanRequest) -> ScanResponse:
     logger.info("scan_request:start url=%s days=%s", payload.url, payload.days)
     try:
-        response = await asyncio.to_thread(run_scan_sync, payload)
+        response = run_scan_sync(payload)
         logger.info("scan_request:success total_masters=%s", response.total_masters)
         return response
     except Exception as exc:
