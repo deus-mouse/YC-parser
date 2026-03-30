@@ -75,6 +75,11 @@ class StaffInfo:
     name: str
 
 
+@dataclass
+class TimeslotInfo:
+    start_at: datetime
+
+
 def parse_duration_to_minutes(raw_text: str) -> int:
     text = raw_text.replace("\xa0", " ").strip()
     match = re.match(r"^(?:(\d+)\s*ч)?\s*(?:(\d+)\s*мин)?$", text)
@@ -533,6 +538,44 @@ class YClientsParser:
         return sorted(result)
 
     def _fetch_timeslot_count(self, staff_id: int, service_id: int, target_date: date) -> int:
+        return len(self._fetch_timeslots(staff_id=staff_id, service_id=service_id, target_date=target_date))
+
+    def _parse_timeslot_start(self, attrs: dict, target_date: date) -> Optional[datetime]:
+        raw_datetime = attrs.get("datetime")
+        if isinstance(raw_datetime, (int, float)):
+            return datetime.fromtimestamp(raw_datetime)
+
+        if isinstance(raw_datetime, str) and raw_datetime.strip():
+            raw_text = raw_datetime.strip()
+            for fmt in (
+                "%Y-%m-%dT%H:%M:%S",
+                "%Y-%m-%d %H:%M:%S",
+                "%Y-%m-%dT%H:%M",
+                "%Y-%m-%d %H:%M",
+            ):
+                try:
+                    return datetime.strptime(raw_text, fmt)
+                except ValueError:
+                    continue
+
+        raw_time = attrs.get("time")
+        if isinstance(raw_time, str) and raw_time.strip():
+            raw_time = raw_time.strip()
+            for fmt in ("%H:%M:%S", "%H:%M"):
+                try:
+                    parsed_time = datetime.strptime(raw_time, fmt).time()
+                    return datetime.combine(target_date, parsed_time)
+                except ValueError:
+                    continue
+
+        return None
+
+    def _fetch_timeslots(
+        self,
+        staff_id: int,
+        service_id: int,
+        target_date: date,
+    ) -> list[TimeslotInfo]:
         payload = {
             "context": {"location_id": self.location_id},
             "filter": {
@@ -548,12 +591,45 @@ class YClientsParser:
             },
         }
         data = self._post_availability("search-timeslots", payload)
-        slot_count = 0
+        result: list[TimeslotInfo] = []
         for item in data.get("data", []):
             attrs = item.get("attributes", {})
-            if attrs.get("is_bookable"):
-                slot_count += 1
-        return slot_count
+            if not attrs.get("is_bookable"):
+                continue
+            start_at = self._parse_timeslot_start(attrs=attrs, target_date=target_date)
+            if start_at is None:
+                continue
+            result.append(TimeslotInfo(start_at=start_at))
+        return sorted(result, key=lambda slot: slot.start_at)
+
+    def _calculate_union_minutes(
+        self,
+        timeslots: list[TimeslotInfo],
+        service_duration_min: int,
+    ) -> int:
+        if not timeslots:
+            return 0
+
+        # Без отдельного поля "шаг записи" в API безопаснее считать только
+        # подтвержденный интервал услуги. Это не раздувает редкие слоты
+        # в ложное свободное окно между ними.
+        interval_length_min = service_duration_min
+        merged_minutes = 0
+        current_start = timeslots[0].start_at
+        current_end = current_start + timedelta(minutes=interval_length_min)
+
+        for slot in timeslots[1:]:
+            slot_start = slot.start_at
+            slot_end = slot_start + timedelta(minutes=interval_length_min)
+            if slot_start <= current_end:
+                current_end = max(current_end, slot_end)
+                continue
+            merged_minutes += int((current_end - current_start).total_seconds() // 60)
+            current_start = slot_start
+            current_end = slot_end
+
+        merged_minutes += int((current_end - current_start).total_seconds() // 60)
+        return merged_minutes
 
     def _visible_calendar_days(self) -> list[tuple[date, str]]:
         assert self.page is not None
@@ -650,15 +726,15 @@ class YClientsParser:
         service_duration_min: int,
     ) -> list[DayAvailability]:
         scan_until = date.today() + timedelta(days=self.days_ahead - 1)
-        day_results: list[DayAvailability] = []
         available_dates = self._fetch_bookable_dates(
             staff_id=staff_id,
             service_id=service_id,
             date_from=date.today(),
             date_to=scan_until,
         )
+        day_results: list[DayAvailability] = []
         for available_date in available_dates:
-            slot_count = self._fetch_timeslot_count(
+            timeslots = self._fetch_timeslots(
                 staff_id=staff_id,
                 service_id=service_id,
                 target_date=available_date,
@@ -666,8 +742,11 @@ class YClientsParser:
             day_results.append(
                 DayAvailability(
                     date=available_date.isoformat(),
-                    slots=slot_count,
-                    free_minutes=slot_count * service_duration_min,
+                    slots=len(timeslots),
+                    free_minutes=self._calculate_union_minutes(
+                        timeslots=timeslots,
+                        service_duration_min=service_duration_min,
+                    ),
                 )
             )
         return day_results
