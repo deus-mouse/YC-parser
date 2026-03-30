@@ -111,6 +111,12 @@ h1 {
   color: var(--muted);
 }
 
+.field-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 .field input {
   height: 48px;
   border-radius: 14px;
@@ -119,6 +125,18 @@ h1 {
   font-size: 15px;
   color: var(--text);
   background: var(--paper-strong);
+}
+
+.time-range {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.time-range-separator {
+  color: var(--muted);
+  text-align: center;
 }
 
 .button {
