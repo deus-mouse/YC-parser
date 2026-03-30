@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
+import re
 import subprocess
 import sys
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
@@ -28,13 +30,35 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 class ScanRequest(BaseModel):
     url: str = Field(..., min_length=1)
     days: int = Field(default=30, ge=1, le=180)
+    working_hours: str = Field(default="")
 
 
 class ScanResponse(BaseModel):
     url: str
     days: int
     total_masters: int
+    working_hours: str = ""
+    total_working_minutes: Optional[int] = None
+    total_free_minutes: Optional[int] = None
+    occupancy_percent: Optional[float] = None
     items: list[dict]
+
+
+def parse_working_hours_to_minutes(raw_value: str) -> Optional[int]:
+    value = raw_value.strip()
+    if not value:
+        return None
+
+    match = re.fullmatch(r"(\d{2}):(\d{2})-(\d{2}):(\d{2})", value)
+    if not match:
+        raise ValueError("Режим работы должен быть в формате HH:MM-HH:MM, например 09:00-21:00.")
+
+    start_hour, start_minute, end_hour, end_minute = (int(part) for part in match.groups())
+    start_total = start_hour * 60 + start_minute
+    end_total = end_hour * 60 + end_minute
+    if end_total <= start_total:
+        raise ValueError("Окончание режима работы должно быть позже начала.")
+    return end_total - start_total
 
 
 def run_scan_sync(payload: ScanRequest) -> ScanResponse:
@@ -72,10 +96,23 @@ def run_scan_sync(payload: ScanRequest) -> ScanResponse:
             f"stdout={completed.stdout[-2000:]}"
         ) from exc
     logger.info("scan_sync:finished items=%s", len(items))
+    daily_working_minutes = parse_working_hours_to_minutes(payload.working_hours)
+    total_free_minutes = sum(int(item.get("total_free_minutes", 0)) for item in items)
+    total_working_minutes = None
+    occupancy_percent = None
+    if daily_working_minutes is not None:
+        total_working_minutes = daily_working_minutes * payload.days * len(items)
+        if total_working_minutes > 0:
+            busy_minutes = max(total_working_minutes - total_free_minutes, 0)
+            occupancy_percent = round((busy_minutes / total_working_minutes) * 100, 2)
     return ScanResponse(
         url=payload.url,
         days=payload.days,
         total_masters=len(items),
+        working_hours=payload.working_hours.strip(),
+        total_working_minutes=total_working_minutes,
+        total_free_minutes=total_free_minutes,
+        occupancy_percent=occupancy_percent,
         items=items,
     )
 
@@ -117,7 +154,12 @@ def update_settings(payload: WebSettings) -> dict:
 
 @app.post("/api/scan", response_model=ScanResponse)
 def scan(payload: ScanRequest) -> ScanResponse:
-    logger.info("scan_request:start url=%s days=%s", payload.url, payload.days)
+    logger.info(
+        "scan_request:start url=%s days=%s working_hours=%s",
+        payload.url,
+        payload.days,
+        payload.working_hours,
+    )
     try:
         response = run_scan_sync(payload)
         logger.info("scan_request:success total_masters=%s", response.total_masters)
